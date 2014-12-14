@@ -345,11 +345,14 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
     else if (currentObject == ID_PLANET)
     {
       normal = (currentPosition - planet.xyz) / planet.w;
+      
+      // light direction for black hole-orbiting planet is towards the blackhole
+      vec3 lightDirection2 = normalize(blackhole.xyz - planet.xyz);
 
       vec3 diffuse = planetDiffuse;
       vec3 specular = planetSpecular;
       vec3 ambient = vec3(0.0);
-      return computeShading(lightDirection, viewVector, normal, diffuse, specular, ambient);
+      return computeShading(lightDirection2, viewVector, normal, diffuse, specular, ambient);
     }
   }
   
