@@ -21,6 +21,15 @@ var uniforms = {
   "saturn":  { type: "v4", value: objects.saturn },
   "planet":  { type: "v4", value: objects.planet },
   
+  // Ring definition - xyz is normal going through ring. Its magnitude determines inner radius.
+  // w component determines outer radius
+  "blackholeDisk": { type: "v4", value: new THREE.Vector4(
+    -0.6459422414661738, 0.7046642634176441, 0.29361010975735174, 4.0
+  ) },
+  "saturnRings": { type: "v4v", value: [
+    new THREE.Vector4(-0.1687, 1.518, 0.6748, 2.33),
+  ] },
+  
   "planetDiffuse": { type: "v3", value: new THREE.Vector3(0.0,0.8,0.0) },
   "planetSpecular": { type: "v3", value: new THREE.Vector3(0.2,0.5,0.5) },
   
@@ -97,7 +106,8 @@ function init()
     uniforms: uniforms,
     
     defines: {
-      NO_EDGE: 1
+      NO_EDGE: 1,
+      NUM_SATURN_RINGS: uniforms.saturnRings.value.length
     },
   
     vertexShader: document.getElementById( 'vertexShaderDepth' ).textContent,

@@ -66,11 +66,15 @@ uniform vec3 planetSpecular;
 
 uniform vec4 wormhole;
 uniform vec4 blackhole;
+
 uniform float gravityWormhole;
 uniform float gravityBlackhole;
 
 uniform vec4 saturn;
 uniform vec4 planet;
+
+uniform vec4 blackholeDisk;
+uniform vec4 saturnRings[NUM_SATURN_RINGS];
 
 uniform sampler2D texSaturn;
 uniform sampler2D texGalaxy1;
@@ -129,8 +133,12 @@ float sphereDistance(vec3 rayPosition, vec3 rayDirection, vec4 sphere)
   return d < 0.0 ? -1.0 : -p - sqrt(d);
 }
 
-float ringDistance(vec3 rayPosition, vec3 rayDirection, vec3 center, vec3 normal, float r1, float r2)
+float ringDistance(vec3 rayPosition, vec3 rayDirection, vec3 center, vec4 definition)
 {
+  float r1 = length(definition.xyz);
+  float r2 = definition.w;
+  vec3 normal = definition.xyz / r1;
+  
   float denominator = dot(rayDirection, normal);
   float constant = -dot(center, normal);
   float distanceToCenter;
@@ -231,8 +239,11 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
       objectDistance = sphereDistance(rayPosition, rayDirection, saturn);
       testDistance(ID_SATURN, objectDistance, currentDistance, currentObject); 
       
-      objectDistance = ringDistance(rayPosition, rayDirection, saturn.xyz, vec3(0.0, 1.0, 0.0), 1.67 * saturn.w, 2.33 * saturn.w);
-      testDistance(ID_SATURN_RING, objectDistance, currentDistance, currentObject); 
+      for (int j = 0; j < NUM_SATURN_RINGS; j++)
+      {
+        objectDistance = ringDistance(rayPosition, rayDirection, saturn.xyz, saturn.w * saturnRings[j]);
+        testDistance(ID_SATURN_RING, objectDistance, currentDistance, currentObject); 
+      }
     }
     else
     {
@@ -246,7 +257,7 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
       }
       testDistance(ID_BLACKHOLE, objectDistance, currentDistance, currentObject); 
       
-      objectDistance = ringDistance(rayPosition, rayDirection, blackhole.xyz, vec3(0.0, 1.0, 0.0), blackhole.w, 4.0 * blackhole.w );
+      objectDistance = ringDistance(rayPosition, rayDirection, blackhole.xyz, blackhole.w * blackholeDisk);
       testDistance(ID_BLACKHOLE_DISK, objectDistance, currentDistance, currentObject); 
     }
 
