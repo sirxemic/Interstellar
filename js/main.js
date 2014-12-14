@@ -7,7 +7,7 @@ var clock = new THREE.Clock();
 
 var objects = {
   wormhole: new THREE.Vector4(0.0, 0.0, -5.0, 0.3),
-  blackhole: new THREE.Vector4(0.0, -20.0, 20.0, 0.3),
+  blackhole: new THREE.Vector4(0.0, -30.0, 30.0, 3),
   saturn: new THREE.Vector4(-10,20.0,-20,8.0),
   planet: new THREE.Vector4(2.0, -20.1, 20.1,0.1)
 };
@@ -15,32 +15,23 @@ var objects = {
 var uniforms = {
   "wormhole": { type: "v4", value: objects.wormhole },
   "blackhole": { type: "v4", value: objects.blackhole },
+  "gravityWormhole": { type: "f", value: 0.01 },
+  "gravityBlackhole": { type: "f", value: 0.1 },
   
   "saturn":  { type: "v4", value: objects.saturn },
   "planet":  { type: "v4", value: objects.planet },
   
-  "diffuseColors": { type: "v3v", value: [
-    new THREE.Vector3(0.0,0.0,0.0),
-    new THREE.Vector3(0.0,0.8,0.0),
-  ] },
-  "ambientColors": { type: "v3v", value: [
-    new THREE.Vector3(0.0,0.0,0.0),
-    new THREE.Vector3(0.01,0.0,0.01),
-  ] },
-  "specularColors": { type: "v3v", value: [
-    new THREE.Vector3(0.0,0.0,0.0),
-    new THREE.Vector3(0.2,0.5,0.5)
-  ] },
+  "planetDiffuse": { type: "v3", value: new THREE.Vector3(0.0,0.8,0.0) },
+  "planetSpecular": { type: "v3", value: new THREE.Vector3(0.2,0.5,0.5) },
   
   "texSaturn":  { type: "t", value: THREE.ImageUtils.loadTexture("saturn.jpg") },
-  "texGalaxy1":  { type: "t", value: THREE.ImageUtils.loadTexture("galaxy.png") },
+  "texGalaxy1":  { type: "t", value: THREE.ImageUtils.loadTexture("galaxy2.png") },
   "texGalaxy2":  { type: "t", value: THREE.ImageUtils.loadTexture("galaxy.png") },
   
   "lightDirection": { type: "v3", value: new THREE.Vector3(-1, 0, 0) },
   
   "rayMatrix": { type: "m4", value: new THREE.Matrix4() },
   "c": { type: "f", value: 0.2 },
-  "g": { type: "f", value: 0.01 },
   "stepSize": { type: "f", value: 1.0 },
   "worldSize": { type: "f", value: 12.0 },
   

@@ -53,24 +53,27 @@
 #define ID_BLACKHOLE_DISK 5
 #define ID_PLANET 6
 
+varying vec2 pos;
+
 uniform vec3 lightDirection;
 uniform mat4 rayMatrix;
-varying vec2 pos;
-uniform vec3  diffuseColors [2];
-uniform vec3  ambientColors [2];
-uniform vec3  specularColors[2];
+
+uniform vec3 planetDiffuse;
+uniform vec3 planetSpecular;
 
 uniform vec4 wormhole;
 uniform vec4 blackhole;
+uniform float gravityWormhole;
+uniform float gravityBlackhole;
+
 uniform vec4 saturn;
 uniform vec4 planet;
+
 uniform sampler2D texSaturn;
 uniform sampler2D texGalaxy1;
 uniform sampler2D texGalaxy2;
 
-// I literally have no idea what these values do.
 uniform float c;
-uniform float g;
 
 uniform float stepSize;
 uniform float worldSize;
@@ -85,7 +88,7 @@ const float r2 = 0.0625;
 const float PI = 3.14159265359;
 const float TWOPI = 6.28318530718;
 
-vec3 sphereColor(int n, vec3 pos)
+vec3 saturnColor(vec3 pos)
 {
   float phi, theta;
   vec2 uv;
@@ -201,8 +204,8 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
     // Bend the light towards the wormhole
     gravityVector = rayPosition - wormhole.xyz;
     rayDistance = length(gravityVector);
-    h1 = (rayDistance - wormhole.w / 5.0) * stepSize;
-    gravityVector = (gravityVector / rayDistance) * (-g / (rayDistance * rayDistance));
+    h1 = (rayDistance - wormhole.w * c) * stepSize;
+    gravityVector = (gravityVector / rayDistance) * (-gravityWormhole / (rayDistance * rayDistance));
     cv += gravityVector * h1;
     rayDirection = normalize(cv);
     cv = rayDirection * c;
@@ -212,8 +215,8 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
       // Bend the light towards the black hole
       gravityVector = rayPosition - blackhole.xyz;
       rayDistance = length(gravityVector);
-      h2 = (rayDistance - blackhole.w / 5.0) * stepSize;
-      gravityVector = (gravityVector / rayDistance) * (-g / (rayDistance * rayDistance));
+      h2 = (rayDistance - blackhole.w * c) * stepSize;
+      gravityVector = (gravityVector / rayDistance) * (-gravityBlackhole / (rayDistance * rayDistance));
       cv += gravityVector * h2;
       rayDirection = normalize(cv);
       cv = rayDirection * c;
@@ -240,7 +243,7 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
       }
       testDistance(ID_BLACKHOLE, objectDistance, currentDistance, currentObject); 
       
-      objectDistance = ringDistance(rayPosition, rayDirection, blackhole.xyz, vec3(0.0, 1.0, 0.0), blackhole.w, 5.0 * blackhole.w );
+      objectDistance = ringDistance(rayPosition, rayDirection, blackhole.xyz, vec3(0.0, 1.0, 0.0), blackhole.w, 4.0 * blackhole.w );
       testDistance(ID_BLACKHOLE_DISK, objectDistance, currentDistance, currentObject); 
     }
 
@@ -320,18 +323,18 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
     {
       normal = (currentPosition - saturn.xyz) / saturn.w;
 
-      vec3 diffuse = sphereColor(0, normal) + diffuseColors[0];
-      vec3 specular = specularColors[0];
-      vec3 ambient = ambientColors[0];
+      vec3 diffuse = saturnColor(normal);
+      vec3 specular = vec3(0.0);
+      vec3 ambient = vec3(0.0);
       return computeShading(lightDirection, viewVector, normal, diffuse, specular, ambient);
     }
     else if (currentObject == ID_PLANET)
     {
       normal = (currentPosition - planet.xyz) / planet.w;
 
-      vec3 diffuse = sphereColor(1, normal) + diffuseColors[1];
-      vec3 specular = specularColors[1];
-      vec3 ambient = ambientColors[1];
+      vec3 diffuse = planetDiffuse;
+      vec3 specular = planetSpecular;
+      vec3 ambient = vec3(0.0);
       return computeShading(lightDirection, viewVector, normal, diffuse, specular, ambient);
     }
   }
@@ -354,6 +357,7 @@ void main() {
 </script>
 
 <script src="js/three.min.js"></script>
+<script src="js/dat.gui.min.js"></script>
 
 <script src="js/ConvolutionShader.js"></script>
 <script src="js/CopyShader.js"></script>
