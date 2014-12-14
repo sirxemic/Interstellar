@@ -6,10 +6,10 @@ var camera, controls, scene, sceneCube, renderer;
 var clock = new THREE.Clock();
 
 var objects = {
-  wormhole: new THREE.Vector4(0.0, 0.0, -5.0, 0.3),
-  blackhole: new THREE.Vector4(0.0, -30.0, 30.0, 3),
-  saturn: new THREE.Vector4(-10,20.0,-20,8.0),
-  planet: new THREE.Vector4(2.0, -20.1, 20.1,0.1)
+  wormhole: new THREE.Vector4(2, -5.0, -28, 0.3),
+  blackhole: new THREE.Vector4(0.0, -200.0, 200.0, 3),
+  saturn: new THREE.Vector4(-14, 5, -40, 8.0),
+  planet: new THREE.Vector4(5.84, -200.3, 211.96, 0.08)
 };
 
 var uniforms = {
