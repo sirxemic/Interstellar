@@ -13,15 +13,26 @@
       font-weight:bold;
       overflow:hidden;
 
-      font-family:Monospace;
-      font-size:13px;
-      text-align:center;
+      font-family: Monospace;
+      font-size: 12px;
     }
 
     #info {
       position: absolute;
-      top: 0px; width: 100%;
+      top: 0; 
+      width: 100%;
       padding: 5px;
+      text-align: center;
+    }
+    
+    #resolution {
+      position: absolute;
+      bottom: 5px;
+      right: 5px;
+    }
+    
+    #resolution > label {
+      display: block;
     }
     
     h3 {
@@ -47,8 +58,15 @@
   <kbd>Q|E</kbd> roll,
   <kbd>up|down</kbd> pitch,
   <kbd>left|right</kbd> yaw
-  <kbd>shift</kbd> speed up
+  <kbd>shift</kbd> speed up<br>
   <kbd>space</kbd> toggle drag controls
+</div>
+
+<div id="resolution">
+  <h3>Pixel size</h3>
+  <label><input type="radio" name="resolution" value="4" checked> 4x4</label>
+  <label><input type="radio" name="resolution" value="2"> 2x2</label>
+  <label><input type="radio" name="resolution" value="1"> 1x1</label>
 </div>
 
 <script type="x-shader/x-fragment" id="fragmentShaderDepth">

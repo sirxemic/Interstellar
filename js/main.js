@@ -1,7 +1,7 @@
 if (!Detector.webgl) Detector.addGetWebGLMessage();
 
 var container, stats;
-var camera, controls, scene, sceneCube, renderer;
+var camera, controls, renderer, composer;
 
 var clock = new THREE.Clock();
 
@@ -90,16 +90,14 @@ function init()
 
   stats = new Stats();
   stats.domElement.style.position = 'absolute';
-  stats.domElement.style.top = '0px';
+  stats.domElement.style.top = '0';
   stats.domElement.style.zIndex = 100;
   container.appendChild(stats.domElement);
   
   window.addEventListener('resize', onWindowResize, false);
   
-  onWindowResize();
-     
+  var quadScene = new THREE.Scene();
   var quad = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), null);
-  
   quad.material = new THREE.ShaderMaterial({
     uniforms: uniforms,
     
@@ -112,10 +110,6 @@ function init()
     fragmentShader: document.getElementById( 'fragmentShaderDepth' ).textContent,
   });
   
-  var quadScene = new THREE.Scene();
-
-  var rayMatrix = new THREE.Matrix4();
-  
   quadScene.add(quad);
   
   var renderModel = new THREE.RenderPass(quadScene, new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1));
@@ -125,10 +119,14 @@ function init()
   effectFilm.renderToScreen = true;
 
   composer = new THREE.EffectComposer(renderer);
-
+  
   composer.addPass(renderModel);
   composer.addPass(effectBloom);
   composer.addPass(effectFilm);
+  
+  document.querySelector("#resolution").addEventListener('change', updateResolution, false);
+  
+  onWindowResize();
 }
 
 function onWindowResize() 
@@ -150,6 +148,17 @@ function onWindowResize()
                 0, 1.2 * vy, 0, 0,
                 0, 0, -1, 0,
                 0, 0, 0, 1);
+                
+  updateResolution();
+}
+
+function updateResolution()
+{
+  var size = parseInt(document.querySelector('[name=resolution]:checked').value),
+      width = Math.floor(window.innerWidth / size),
+      height = Math.floor(window.innerHeight / size);
+      
+  composer.setSize(width, height);
 }
 
 function animate() 
