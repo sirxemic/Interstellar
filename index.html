@@ -235,6 +235,12 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
       cv += gravityVector * h2;
       rayDirection = normalize(cv);
       cv = rayDirection * c;
+      
+      if (h2 <= c)
+      {
+        currentObject = -1;
+        break;
+      }
     }
 
     // Test against objects in this universe
@@ -254,12 +260,8 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
       objectDistance = sphereDistance(rayPosition, rayDirection, planet);
       testDistance(ID_PLANET, objectDistance, currentDistance, currentObject); 
       
-      objectDistance = sphereDistance(rayPosition, rayDirection, blackhole);
-      if (length(blackhole.xyz - rayPosition) < blackhole.w) 
-      {
-        objectDistance = EPSILON;
-      }
-      testDistance(ID_BLACKHOLE, objectDistance, currentDistance, currentObject); 
+      /*objectDistance = sphereDistance(rayPosition, rayDirection, blackhole);
+      testDistance(ID_BLACKHOLE, objectDistance, currentDistance, currentObject); */
       
       objectDistance = ringDistance(rayPosition, rayDirection, blackhole.xyz, blackhole.w * blackholeDisk);
       testDistance(ID_BLACKHOLE_DISK, objectDistance, currentDistance, currentObject); 
