@@ -75,8 +75,6 @@ function init()
       {
         controls.moveState.yawLeft = 0;
         controls.moveState.pitchDown = 0;
-        controls.moveState.forward = 0;
-        controls.moveState.back = 0;
       }
       controls.dragToLook = !controls.dragToLook;
     }
