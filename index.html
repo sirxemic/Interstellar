@@ -18,17 +18,19 @@
     }
 
     #info {
-      position: absolute;
+      position: fixed;
       top: 0; 
       width: 100%;
       padding: 5px;
       text-align: center;
+      z-index: 10;
     }
     
     #resolution {
-      position: absolute;
+      position: fixed;
       bottom: 5px;
       right: 5px;
+      z-index: 10;
     }
     
     #resolution > label {
@@ -44,6 +46,14 @@
     }
 
     kbd { color: orange }
+    
+    #container { 
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+    }
     
     canvas { display: block; }
   </style>
@@ -68,6 +78,8 @@
   <label><input type="radio" name="resolution" value="2"> 2x2</label>
   <label><input type="radio" name="resolution" value="1"> 1x1</label>
 </div>
+
+<div id="container"></div>
 
 <script type="x-shader/x-fragment" id="fragmentShaderDepth">
 #define ID_SATURN 0

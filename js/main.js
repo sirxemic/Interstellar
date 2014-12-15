@@ -54,7 +54,7 @@ animate();
 
 function init() 
 {
-  container = document.createElement('div');
+  container = document.getElementById('container');
   document.body.appendChild(container);
 
   var w = window.innerWidth, h = window.innerHeight, m = Math.max(w, h);
@@ -124,7 +124,10 @@ function init()
   composer.addPass(effectBloom);
   composer.addPass(effectFilm);
   
-  document.querySelector("#resolution").addEventListener('change', updateResolution, false);
+  document.querySelector("#resolution").addEventListener('change', function(event) {
+    updateResolution();
+    event.target.blur();
+  }, false);
   
   onWindowResize();
 }
