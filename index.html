@@ -131,26 +131,18 @@ const float TWOPI = 6.28318530718;
 
 vec3 saturnColor(vec3 pos)
 {
-  float phi, theta;
-  vec2 uv;
-  phi = acos(pos.y);
-  theta = acos(-pos.x / sin(phi)) / TWOPI;
-  uv = vec2(
-    pos.z >= 0.0 ? 1.0 - theta : theta,
-    phi / PI
+  vec2 uv = vec2(
+    0.5 + atan(pos.z, pos.x) / TWOPI,
+    0.5 - asin(pos.y) / PI
   );
   return texture2D(texSaturn, uv).rgb;
 }
 
 vec3 panoramaColor(int n, vec3 pos)
 {
-  float phi, theta;
-  vec2 uv;
-  phi = acos(pos.y);
-  theta = acos(-pos.x / sin(phi)) / TWOPI;
-  uv = vec2(
-    pos.z >= 0.0 ? 1.0 - theta : theta,
-    phi / PI
+  vec2 uv = vec2(
+    0.5 - atan(pos.z, pos.x) / TWOPI,
+    0.5 - asin(pos.y) / PI
   );
   if (n == 0) return texture2D(texGalaxy1, uv).rgb;
   else return texture2D(texGalaxy2, uv).rgb;
