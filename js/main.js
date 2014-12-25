@@ -34,8 +34,8 @@ var uniforms = {
   "planetSpecular": { type: "v3", value: new THREE.Vector3(0.2,0.5,0.5) },
   
   "texSaturn":  { type: "t", value: THREE.ImageUtils.loadTexture("saturn.jpg") },
-  "texGalaxy1":  { type: "t", value: THREE.ImageUtils.loadTexture("galaxy2.png") },
-  "texGalaxy2":  { type: "t", value: THREE.ImageUtils.loadTexture("galaxy.png") },
+  "texGalaxy1":  { type: "t", value: THREE.ImageUtils.loadTexture("galaxy1.png") },
+  "texGalaxy2":  { type: "t", value: THREE.ImageUtils.loadTexture("galaxy2.png") },
   
   "lightDirection": { type: "v3", value: new THREE.Vector3(-1, 0, 0) },
   
