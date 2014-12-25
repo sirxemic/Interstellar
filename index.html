@@ -55,6 +55,11 @@
       bottom: 0;
     }
     
+    #keyboard-controls { display: block; }
+    #tablet-controls { display: none; }
+    .tablet #keyboard-controls { display: none; }
+    .tablet #tablet-controls { display: block; }
+    
     canvas { display: block; }
   </style>
 </head>
@@ -63,13 +68,18 @@
 
 <div id="info">
   <h3>Controls:</h3>
-  <kbd>WASD</kbd> move,
-  <kbd>R|F</kbd> up | down,
-  <kbd>Q|E</kbd> roll,
-  <kbd>up|down</kbd> pitch,
-  <kbd>left|right</kbd> yaw
-  <kbd>shift</kbd> speed up<br>
-  <kbd>space</kbd> toggle drag controls
+  <div id="keyboard-controls">
+    <kbd>WASD</kbd> move,
+    <kbd>R|F</kbd> up | down,
+    <kbd>Q|E</kbd> roll,
+    <kbd>up|down</kbd> pitch,
+    <kbd>left|right</kbd> yaw
+    <kbd>shift</kbd> speed up<br>
+    <kbd>space</kbd> toggle drag controls
+  </div>
+  <div id="tablet-controls">
+    Point your device around you to look around. Touch the screen to move forwards.
+  </div>
 </div>
 
 <div id="resolution">
@@ -416,6 +426,8 @@ void main() {
 <script src="js/FilmPass.js"></script>
 
 <script src="js/FlyControls.js"></script>
+<script src="js/DeviceOrientationControls.js"></script>
+<script src="js/TabletControls.js"></script>
 <script src="js/Detector.js"></script>
 <script src="js/stats.min.js"></script>
 <script src="js/main.js"></script>

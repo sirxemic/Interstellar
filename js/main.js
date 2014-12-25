@@ -1,7 +1,7 @@
 if (!Detector.webgl) Detector.addGetWebGLMessage();
 
 var container, stats;
-var camera, controls, renderer, composer;
+var camera, tabletControls, keyboardControls, renderer, composer;
 
 var clock = new THREE.Clock();
 
@@ -54,47 +54,14 @@ animate();
 
 function init() 
 {
-  container = document.getElementById('container');
-  document.body.appendChild(container);
-
-  var w = window.innerWidth, h = window.innerHeight, m = Math.max(w, h);
-  w /= m; h /= m;
-  camera = new THREE.OrthographicCamera(-w, w, -h, h, 0, 1);
-  controls = new THREE.FlyControls( camera, container );
-
-  controls.movementSpeed = 1;
-  controls.domElement = container;
-  controls.rollSpeed = Math.PI / 3;
-  controls.autoForward = false;
-  controls.dragToLook = false;
-  
-  window.addEventListener('keypress', function(event) {
-    if (event.charCode == 32)
-    {
-      if (!controls.dragToLook)
-      {
-        controls.moveState.yawLeft = 0;
-        controls.moveState.pitchDown = 0;
-      }
-      controls.dragToLook = !controls.dragToLook;
-    }
-  }, false);
+  // Init THREE.js stuff
+  camera = new THREE.OrthographicCamera(-1, 1, -1, 1, 0, 1);
 
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.sortObjects = false;
 
   renderer.autoClear = false;
-
-  container.appendChild(renderer.domElement);
-
-  stats = new Stats();
-  stats.domElement.style.position = 'absolute';
-  stats.domElement.style.top = '0';
-  stats.domElement.style.zIndex = 100;
-  container.appendChild(stats.domElement);
-  
-  window.addEventListener('resize', onWindowResize, false);
   
   var quadScene = new THREE.Scene();
   var quad = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), null);
@@ -106,8 +73,8 @@ function init()
       NUM_SATURN_RINGS: uniforms.saturnRings.value.length
     },
   
-    vertexShader: document.getElementById( 'vertexShaderDepth' ).textContent,
-    fragmentShader: document.getElementById( 'fragmentShaderDepth' ).textContent,
+    vertexShader: document.getElementById("vertexShaderDepth").textContent,
+    fragmentShader: document.getElementById("fragmentShaderDepth").textContent,
   });
   
   quadScene.add(quad);
@@ -123,13 +90,65 @@ function init()
   composer.addPass(renderModel);
   composer.addPass(effectBloom);
   composer.addPass(effectFilm);
+
+  // Init some DOM stuff
+  container = document.getElementById("container");
+  container.appendChild(renderer.domElement);
   
-  document.querySelector("#resolution").addEventListener('change', function(event) {
+  stats = new Stats();
+  stats.domElement.style.position = "absolute";
+  stats.domElement.style.top = 0;
+  stats.domElement.style.zIndex = 100;
+  document.body.appendChild(stats.domElement);
+  
+  window.addEventListener("resize", onWindowResize, false);
+  onWindowResize();
+  
+  document.querySelector("#resolution").addEventListener("change", function(event) {
     updateResolution();
     event.target.blur();
   }, false);
   
-  onWindowResize();
+  // Init the controls
+  tabletControls = new TabletControls(camera, container);
+  tabletControls.movementSpeed = 1.3;
+  
+  keyboardControls = new THREE.FlyControls(camera, container);
+  keyboardControls.movementSpeed = 1;
+  keyboardControls.domElement = container;
+  keyboardControls.rollSpeed = Math.PI / 3;
+  keyboardControls.autoForward = false;
+  keyboardControls.dragToLook = false;
+  
+  window.addEventListener("keypress", function(event) {
+    if (event.charCode == 32)
+    {
+      if (!keyboardControls.dragToLook)
+      {
+        keyboardControls.moveState.yawLeft = 0;
+        keyboardControls.moveState.pitchDown = 0;
+      }
+      keyboardControls.dragToLook = !keyboardControls.dragToLook;
+    }
+    
+    // Pretty sure we don't need tablet controls when a keyboard event is triggered.
+    tabletControls.disconnect();
+    
+    document.body.classList.remove("tablet");
+  }, false);
+  
+  // Disable tablet controls until we get some indication that we're on a tablet
+  tabletControls.disconnect();
+  
+  var deviceListener = function(event) {
+    tabletControls.connect();
+    
+    window.removeEventListener("deviceorientation", deviceListener, false);
+    
+    document.body.classList.add("tablet");
+  };
+  
+  window.addEventListener("deviceorientation", deviceListener, false);
 }
 
 function onWindowResize() 
@@ -157,7 +176,7 @@ function onWindowResize()
 
 function updateResolution()
 {
-  var size = parseInt(document.querySelector('[name=resolution]:checked').value),
+  var size = parseInt(document.querySelector("[name=resolution]:checked").value),
       width = Math.floor(window.innerWidth / size),
       height = Math.floor(window.innerHeight / size);
       
@@ -180,7 +199,8 @@ function render()
   var prevPosition = new THREE.Vector3();
   prevPosition.copy(camera.position);
 
-  controls.update( delta );
+  keyboardControls.update(delta);
+  tabletControls.update(delta);
 
   var rotationMatrix = new THREE.Matrix4();
   
