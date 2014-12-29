@@ -24,18 +24,20 @@ var uniforms = {
   // Ring definition - xyz is normal going through ring. Its magnitude determines inner radius.
   // w component determines outer radius
   "blackholeDisk": { type: "v4", value: new THREE.Vector4(
-    -0.6459422414661738, 0.7046642634176441, 0.29361010975735174, 4.0
+    -0.7459422414661738, 0.7046642634176441, 0.29361010975735174, 8.0
   ) },
-  "saturnRings": { type: "v4v", value: [
-    new THREE.Vector4(-0.1687, 1.518, 0.6748, 2.33),
-  ] },
+  "saturnRings": { type: "v4", value: new THREE.Vector4(
+    -0.1687, 1.518, 0.6748, 2.33
+  ) },
   
   "planetDiffuse": { type: "v3", value: new THREE.Vector3(0.0,0.8,0.0) },
   "planetSpecular": { type: "v3", value: new THREE.Vector3(0.2,0.5,0.5) },
   
-  "texSaturn":  { type: "t", value: THREE.ImageUtils.loadTexture("saturn.jpg") },
+  "texSaturn": { type: "t", value: THREE.ImageUtils.loadTexture("saturn.jpg") },
+  "texSaturnRings": { type: "t", value: THREE.ImageUtils.loadTexture("saturnrings.png") },
   "texGalaxy1":  { type: "t", value: THREE.ImageUtils.loadTexture("galaxy1.png") },
   "texGalaxy2":  { type: "t", value: THREE.ImageUtils.loadTexture("galaxy2.png") },
+  "texAccretionDisk": { type: "t", value: THREE.ImageUtils.loadTexture("accretiondisk.jpg") },
   
   "lightDirection": { type: "v3", value: new THREE.Vector3(-1, 0, 0) },
   
@@ -64,13 +66,13 @@ function init()
   renderer.autoClear = false;
   
   var quadScene = new THREE.Scene();
+  var quadCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   var quad = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), null);
   quad.material = new THREE.ShaderMaterial({
     uniforms: uniforms,
     
     defines: {
-      NO_EDGE: 1,
-      NUM_SATURN_RINGS: uniforms.saturnRings.value.length
+      NO_EDGE: 1
     },
   
     vertexShader: document.getElementById("vertexShaderDepth").textContent,
@@ -79,7 +81,7 @@ function init()
   
   quadScene.add(quad);
   
-  var renderModel = new THREE.RenderPass(quadScene, new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1));
+  var renderModel = new THREE.RenderPass(quadScene, quadCam);
   var effectBloom = new THREE.BloomPass(1.25);
   var effectFilm = new THREE.FilmPass(0.35, 0.95, 2048, false);
 

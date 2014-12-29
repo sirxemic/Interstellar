@@ -118,11 +118,13 @@ uniform vec4 saturn;
 uniform vec4 planet;
 
 uniform vec4 blackholeDisk;
-uniform vec4 saturnRings[NUM_SATURN_RINGS];
+uniform vec4 saturnRings;
 
 uniform sampler2D texSaturn;
+uniform sampler2D texSaturnRings;
 uniform sampler2D texGalaxy1;
 uniform sampler2D texGalaxy2;
+uniform sampler2D texAccretionDisk;
 
 uniform float c;
 
@@ -158,6 +160,42 @@ vec3 panoramaColor(int n, vec3 pos)
   else return texture2D(texGalaxy2, uv).rgb;
 }
 
+vec3 accretionDiskColor(vec3 pos)
+{
+  pos = pos - blackhole.xyz;
+  
+  float r1 = length(blackholeDisk.xyz);
+  float r2 = blackholeDisk.w;
+  
+  // Important! Scale radii according to black hole
+  float v = (length(pos) - blackhole.w * r1) / (blackhole.w * (r2 - r1));
+  
+  // Normalize all relevant vectors for computing U
+  vec3 ringNormal = blackholeDisk.xyz / r1;
+  pos = normalize(pos); 
+  
+  // Construct a quaternion that rotates the ring and pos onto the xy-plane
+  vec3 origin = vec3(0.0, 0.0, 1.0);
+  vec4 axisAngle = vec4(cross(ringNormal, origin), dot(ringNormal, origin));
+  vec4 q = vec4(sin(axisAngle.w * 0.5) * axisAngle.xyz, cos(axisAngle.w * 0.5));
+  
+  vec3 oldPos = pos;
+
+  vec4 i = vec4(
+    + q.w * oldPos.x + q.y * oldPos.z - q.z * oldPos.y,
+    + q.w * oldPos.y + q.z * oldPos.x - q.x * oldPos.z,
+    + q.w * oldPos.z + q.x * oldPos.y - q.y * oldPos.x,
+    - q.x * oldPos.x - q.y * oldPos.y - q.z * oldPos.z
+  );
+
+  pos.x = i.x * q.w - i.w * q.x - i.y * q.z + i.z * q.y;
+  pos.y = i.y * q.w - i.w * q.y - i.z * q.x + i.x * q.z;
+  
+  float angle = atan(pos.y, pos.x);
+  float u = 0.5 - angle / TWOPI;
+  return texture2D(texAccretionDisk, vec2(u, v)).rgb;
+}
+
 float sphereDistance(vec3 rayPosition, vec3 rayDirection, vec4 sphere)
 {
   vec3 v;
@@ -167,6 +205,26 @@ float sphereDistance(vec3 rayPosition, vec3 rayDirection, vec4 sphere)
   d = p * p + sphere.w * sphere.w - dot(v, v);
 
   return d < 0.0 ? -1.0 : -p - sqrt(d);
+}
+
+vec3 saturnRingColor(vec3 pos)
+{
+  pos = pos - saturn.xyz;
+  
+  float r1 = length(saturnRings.xyz);
+  float r2 = saturnRings.w;
+  
+  // Important! Scale radii according to saturn
+  float v = (length(pos) - saturn.w * r1) / (saturn.w * (r2 - r1));
+  
+  vec3 color = texture2D(texSaturnRings, vec2(0.5, v)).rgb;
+  
+  float objectDistance = sphereDistance(saturn.xyz + pos, lightDirection, saturn);
+  if (objectDistance > 0.0) 
+  {
+    return color * 0.1;
+  }
+  return color;
 }
 
 float ringDistance(vec3 rayPosition, vec3 rayDirection, vec3 center, vec4 definition)
@@ -235,7 +293,7 @@ vec3 refl(vec3 v, vec3 n)
 vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
 {
   float currentDistance = INFINITY;
-  int   currentObject = -1;
+  int   currentObject = -1, prevObject = -1;
   int   currentGalaxy = startGalaxy;
   int   otherGalaxy = 1 - currentGalaxy;
   vec3  normal;
@@ -243,6 +301,8 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
   float h1, h2, rayDistance;
   vec3 gravityVector, cv = rayDirection * c;
   float objectDistance;
+  
+  vec3 color = vec3(0.0);
 
   for (int i = 0; i < 100; i++)
   {
@@ -281,19 +341,13 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
       objectDistance = sphereDistance(rayPosition, rayDirection, saturn);
       testDistance(ID_SATURN, objectDistance, currentDistance, currentObject); 
       
-      for (int j = 0; j < NUM_SATURN_RINGS; j++)
-      {
-        objectDistance = ringDistance(rayPosition, rayDirection, saturn.xyz, saturn.w * saturnRings[j]);
-        testDistance(ID_SATURN_RING, objectDistance, currentDistance, currentObject); 
-      }
+      objectDistance = ringDistance(rayPosition, rayDirection, saturn.xyz, saturn.w * saturnRings);
+      testDistance(ID_SATURN_RING, objectDistance, currentDistance, currentObject); 
     }
     else
     {
       objectDistance = sphereDistance(rayPosition, rayDirection, planet);
       testDistance(ID_PLANET, objectDistance, currentDistance, currentObject); 
-      
-      /*objectDistance = sphereDistance(rayPosition, rayDirection, blackhole);
-      testDistance(ID_BLACKHOLE, objectDistance, currentDistance, currentObject); */
       
       objectDistance = ringDistance(rayPosition, rayDirection, blackhole.xyz, blackhole.w * blackholeDisk);
       testDistance(ID_BLACKHOLE_DISK, objectDistance, currentDistance, currentObject); 
@@ -318,15 +372,36 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
     {
       rayDistance = c * h1;
     }
-    
-    if (currentObject != -1 && currentDistance <= rayDistance * 1.1)
+
+    if (currentObject != -1 && currentDistance <= rayDistance)
     {
       // Test if inside blackhole
       if (currentObject == ID_BLACKHOLE)
       {
         currentObject = -1;
       }
-      break;
+      
+      if (currentObject == ID_BLACKHOLE_DISK)
+      {
+        vec3 targetPosition = rayPosition + rayDirection * currentDistance;
+        color += accretionDiskColor(targetPosition);
+        currentObject = -1;
+        prevObject = ID_BLACKHOLE_DISK;
+      }
+      else if (currentObject == ID_SATURN_RING)
+      {
+        vec3 targetPosition = rayPosition + rayDirection * currentDistance;
+        if (prevObject != ID_SATURN_RING)
+        {
+          color += saturnRingColor(targetPosition);
+        }
+        currentObject = -1;
+        prevObject = ID_SATURN_RING;
+      }
+      else
+      {
+        break;
+      }
     }
 
     float d = sphereDistance(rayPosition, rayDirection, wormhole);
@@ -344,6 +419,12 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
       rayPosition += rayDirection * rayDistance;
     }
   }
+  
+  if (startGalaxy == 0 && currentGalaxy == 1)
+  {
+    objectDistance = sphereDistance(rayPosition, rayDirection, blackhole);
+    testDistance(ID_BLACKHOLE, objectDistance, currentDistance, currentObject);
+  }
 
   if (currentObject != -1)
   {
@@ -353,23 +434,10 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
     if (currentObject == ID_GALAXY1 || currentObject == ID_GALAXY2)
     { // Objects >= 100 are the galaxies
 #if NO_EDGE
-     return panoramaColor(currentGalaxy, rayDirection);
+     return color + panoramaColor(currentGalaxy, rayDirection);
 #else
-     return panoramaColor(currentGalaxy, currentPosition / worldSize);
+     return color + panoramaColor(currentGalaxy, currentPosition / worldSize);
 #endif
-    }
-    else if (currentObject == ID_BLACKHOLE_DISK)
-    {
-      return vec3(1.0);
-    }
-    else if (currentObject == ID_SATURN_RING)
-    {
-      objectDistance = sphereDistance(currentPosition, lightDirection, saturn);
-      if (objectDistance > 0.0) 
-      {
-        return vec3(0.0);
-      }
-      return vec3(0.5);
     }
     else if (currentObject == ID_SATURN)
     {
@@ -378,7 +446,21 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
       vec3 diffuse = saturnColor(normal);
       vec3 specular = vec3(0.0);
       vec3 ambient = vec3(0.0);
-      return computeShading(lightDirection, viewVector, normal, diffuse, specular, ambient);
+      return color + computeShading(lightDirection, viewVector, normal, diffuse, specular, ambient);
+    }
+    else if (currentObject == ID_BLACKHOLE_DISK)
+    {
+      vec3 targetPosition = rayPosition + rayDirection * currentDistance;
+      return accretionDiskColor(targetPosition);
+    }
+    else if (currentObject == ID_SATURN_RING)
+    {
+      vec3 targetPosition = rayPosition + rayDirection * currentDistance;
+      return saturnRingColor(targetPosition);
+    }
+    else if (currentObject == ID_BLACKHOLE)
+    {
+      return vec3(0.0);
     }
     else if (currentObject == ID_PLANET)
     {
@@ -390,11 +472,11 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
       vec3 diffuse = planetDiffuse;
       vec3 specular = planetSpecular;
       vec3 ambient = vec3(0.0);
-      return computeShading(lightDirection2, viewVector, normal, diffuse, specular, ambient);
+      return color + computeShading(lightDirection2, viewVector, normal, diffuse, specular, ambient);
     }
   }
   
-  return vec3(0.0);
+  return color;
 }
 
 void main()
