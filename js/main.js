@@ -143,6 +143,8 @@ function init()
   tabletControls.disconnect();
   
   var deviceListener = function(event) {
+    if (event.alpha === null) return;
+    
     tabletControls.connect();
     
     window.removeEventListener("deviceorientation", deviceListener, false);

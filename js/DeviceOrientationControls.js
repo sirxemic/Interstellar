@@ -74,7 +74,7 @@ THREE.DeviceOrientationControls = function ( object ) {
 
 	this.update = function () {
 
-		if ( scope.enabled === false ) return;
+		if ( scope.enabled === false || !scope.deviceOrientation || scope.deviceOrientation.alpha === null ) return;
 
 		var alpha  = scope.deviceOrientation.alpha ? THREE.Math.degToRad( scope.deviceOrientation.alpha ) : 0; // Z
 		var beta   = scope.deviceOrientation.beta  ? THREE.Math.degToRad( scope.deviceOrientation.beta  ) : 0; // X'
