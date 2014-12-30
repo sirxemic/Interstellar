@@ -328,7 +328,7 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
       rayDirection = normalize(cv);
       cv = rayDirection * c;
       
-      if (h2 <= c)
+      if (h2 <= 0.005)
       {
         currentObject = -1;
         break;
