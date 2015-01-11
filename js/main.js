@@ -1,5 +1,7 @@
 if (!Detector.webgl) Detector.addGetWebGLMessage();
 
+var _tempVector = new THREE.Vector3();
+
 var Simulation = {
   init: function init() 
   {
@@ -232,13 +234,18 @@ var Simulation = {
     animate();
   },
   
+  _diff: new THREE.Vector3(),
+  _axis: new THREE.Vector3(),
+  _intersection: new THREE.Vector3(),
+  _rotation: new THREE.Quaternion(),
+  
   render: function()
   {
     var delta = this.clock.getDelta(),
         wormholePosition = this.wormholePositionSize,
         wormholeRadius = this.wormholePositionSize.w;
     
-    var prevPosition = new THREE.Vector3();
+    var prevPosition = _tempVector;
     prevPosition.copy(this.camera.position);
 
     this.keyboardControls.update(delta);
@@ -247,24 +254,22 @@ var Simulation = {
     if (this.camera.position.distanceTo(wormholePosition) < wormholeRadius && prevPosition.distanceTo(wormholePosition) >= wormholeRadius)
     {
       // Calculate where exactly we passed through the wormhole
-      var diff = new THREE.Vector3();
-      diff.subVectors(this.camera.position, prevPosition).normalize();
+      this._diff.subVectors(this.camera.position, prevPosition).normalize();
       
-      var intersection = new THREE.Vector3();
-      intersection.subVectors(prevPosition, wormholePosition);
-      var p = intersection.dot(diff);
-      var d = p * p + wormholeRadius * wormholeRadius - intersection.dot(intersection);
-      intersection.copy(diff).multiplyScalar(-p - Math.sqrt(d)).add(prevPosition);
+      this._intersection.subVectors(prevPosition, wormholePosition);
+      var p = this._intersection.dot(this._diff);
+      var d = p * p + wormholeRadius * wormholeRadius - this._intersection.dot(this._intersection);
+      this._intersection.copy(this._diff).multiplyScalar(-p - Math.sqrt(d)).add(prevPosition);
       
       // Rotate 180 degrees around axis pointing at exit point
-      var rotation = new THREE.Quaternion();
-      var axis = new THREE.Vector3();
-      axis.subVectors(intersection, wormholePosition).normalize();
-      rotation.setFromAxisAngle(axis, Math.PI);
-      this.camera.quaternion.multiplyQuaternions(rotation, this.camera.quaternion);
+      var axis = _tempVector;
+      axis.subVectors(this._intersection, wormholePosition).normalize();
+      this._rotation.setFromAxisAngle(axis, Math.PI);
+      this.camera.quaternion.multiplyQuaternions(this._rotation, this.camera.quaternion);
 
       // Set new camera position a tiny bit outside mirrored intersection point
-      this.camera.position.copy(wormholePosition).multiplyScalar(2).sub(intersection.multiplyScalar(1.0001));
+      var temp = _tempVector;
+      this.camera.position.copy(wormholePosition).add(temp.subVectors(wormholePosition, this._intersection).multiplyScalar(1.0001));
       
       this.uniforms.startGalaxy.value = 1 - this.uniforms.startGalaxy.value;
     }
@@ -281,7 +286,6 @@ var Simulation = {
     this.renderer.clear();
     this.composer.render( 0.01 );
   }
-
 };
 
 Simulation.init();
