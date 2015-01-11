@@ -7,7 +7,7 @@ var clock = new THREE.Clock();
 
 var objects = {
   wormhole: new THREE.Vector4(2, -5.0, -28, 0.3),
-  blackhole: new THREE.Vector4(0.0, -200.0, 200.0, 3),
+  blackhole: new THREE.Vector4(0.0, -250.0, 250.0, 3),
   saturn: new THREE.Vector4(-14, 5, -40, 8.0),
   planet: new THREE.Vector4(5.84, -200.3, 211.96, 0.08)
 };
@@ -15,8 +15,8 @@ var objects = {
 var uniforms = {
   "wormhole": { type: "v4", value: objects.wormhole },
   "blackhole": { type: "v4", value: objects.blackhole },
-  "gravityWormhole": { type: "f", value: 0.01 },
-  "gravityBlackhole": { type: "f", value: 0.1 },
+  "gravityWormhole": { type: "f", value: 0.006 },
+  "gravityBlackhole": { type: "f", value: 0.5 },
   
   "saturn":  { type: "v4", value: objects.saturn },
   "planet":  { type: "v4", value: objects.planet },
@@ -24,7 +24,7 @@ var uniforms = {
   // Ring definition - xyz is normal going through ring. Its magnitude determines inner radius.
   // w component determines outer radius
   "blackholeDisk": { type: "v4", value: new THREE.Vector4(
-    -0.7459422414661738, 0.7046642634176441, 0.29361010975735174, 8.0
+    -3.72971121, 3.52332132, 1.46805055, 40.0
   ) },
   "saturnRings": { type: "v4", value: new THREE.Vector4(
     -0.1687, 1.518, 0.6748, 2.33
@@ -42,9 +42,8 @@ var uniforms = {
   "lightDirection": { type: "v3", value: new THREE.Vector3(-1, 0, 0) },
   
   "rayMatrix": { type: "m4", value: new THREE.Matrix4() },
-  "c": { type: "f", value: 0.2 },
+  "lightSpeed": { type: "f", value: 0.2 },
   "stepSize": { type: "f", value: 1.0 },
-  "worldSize": { type: "f", value: 12.0 },
   
   "startGalaxy": { type: "i", value: 0 },
   "cameraPosition": { type: "v3" },
@@ -205,19 +204,38 @@ function render()
 
   keyboardControls.update(delta);
   tabletControls.update(delta);
+  
+  if (camera.position.distanceTo(objects.wormhole) < objects.wormhole.w && prevPosition.distanceTo(objects.wormhole) >= objects.wormhole.w)
+  {
+    // Calculate where exactly we passed through the wormhole
+    var diff = new THREE.Vector3();
+    diff.subVectors(camera.position, prevPosition).normalize();
+    
+    var intersection = new THREE.Vector3();
+    intersection.subVectors(prevPosition, objects.wormhole);
+    var p = intersection.dot(diff);
+    var d = p * p + objects.wormhole.w * objects.wormhole.w - intersection.dot(intersection);
+    intersection.copy(diff).multiplyScalar(-p - Math.sqrt(d)).add(prevPosition);
+    
+    // Rotate 180 degrees around axis pointing at exit point
+    var rotation = new THREE.Quaternion();
+    var axis = new THREE.Vector3();
+    axis.subVectors(intersection, objects.wormhole).normalize();
+    rotation.setFromAxisAngle(axis, Math.PI);
+    camera.quaternion.multiplyQuaternions(rotation, camera.quaternion);
 
+    // Set new camera position a tiny bit outside mirrored intersection point
+    camera.position.copy(objects.wormhole).multiplyScalar(2).sub(intersection.multiplyScalar(1.0001));
+    
+    uniforms.startGalaxy.value = 1 - uniforms.startGalaxy.value;
+  }
+  
   var rotationMatrix = new THREE.Matrix4();
   
   uniforms.cameraPosition.value = camera.position;
   rotationMatrix.makeRotationFromQuaternion(camera.quaternion);
   uniforms.rayMatrix.value.copy(rotationMatrix);
   uniforms.rayMatrix.value.multiply(rayMatrix);
-  
-  if (camera.position.distanceTo(objects.wormhole) < objects.wormhole.w)
-  {
-    camera.position.copy(objects.wormhole).multiplyScalar(2).sub(prevPosition);
-    uniforms.startGalaxy.value = 1 - uniforms.startGalaxy.value;
-  }
   
   renderer.clear();
   composer.render( 0.01 );

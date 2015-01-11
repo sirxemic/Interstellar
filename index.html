@@ -126,9 +126,9 @@ uniform sampler2D texGalaxy1;
 uniform sampler2D texGalaxy2;
 uniform sampler2D texAccretionDisk;
 
-uniform float c;
-
+uniform float lightSpeed;
 uniform float stepSize;
+
 uniform float worldSize;
 uniform int startGalaxy;
 
@@ -299,7 +299,7 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
   vec3  normal;
 
   float h1, h2, rayDistance;
-  vec3 gravityVector, cv = rayDirection * c;
+  vec3 gravityVector, lightVector = rayDirection * lightSpeed;
   float objectDistance;
   
   vec3 color = vec3(0.0);
@@ -309,24 +309,24 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
     currentDistance = INFINITY;
     
     // Bend the light towards the wormhole
-    gravityVector = rayPosition - wormhole.xyz;
+    gravityVector = wormhole.xyz - rayPosition;
     rayDistance = length(gravityVector);
-    h1 = (rayDistance - wormhole.w * c) * stepSize;
-    gravityVector = (gravityVector / rayDistance) * (-gravityWormhole / (rayDistance * rayDistance));
-    cv += gravityVector * h1;
-    rayDirection = normalize(cv);
-    cv = rayDirection * c;
+    h1 = (rayDistance - wormhole.w * 0.85) * stepSize;
+    gravityVector = gravityVector * (gravityWormhole / (rayDistance * rayDistance * rayDistance));
+    lightVector += gravityVector * h1;
+    rayDirection = normalize(lightVector);
+    lightVector = rayDirection * lightSpeed;
     
     if (currentGalaxy == 1)
     {
       // Bend the light towards the black hole
-      gravityVector = rayPosition - blackhole.xyz;
+      gravityVector = blackhole.xyz - rayPosition;
       rayDistance = length(gravityVector);
-      h2 = (rayDistance - blackhole.w * c) * stepSize;
-      gravityVector = (gravityVector / rayDistance) * (-gravityBlackhole / (rayDistance * rayDistance));
-      cv += gravityVector * h2;
-      rayDirection = normalize(cv);
-      cv = rayDirection * c;
+      h2 = (rayDistance - blackhole.w * 0.2) * stepSize;
+      gravityVector = gravityVector * (gravityBlackhole / (rayDistance * rayDistance * rayDistance));
+      lightVector += gravityVector * h2;
+      rayDirection = normalize(lightVector);
+      lightVector = rayDirection * lightSpeed;
       
       if (h2 <= 0.005)
       {
@@ -366,11 +366,11 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
 
     if (currentGalaxy == 1)
     {
-      rayDistance = c * min(h1, h2);
+      rayDistance = lightSpeed * min(h1, h2);
     }
     else
     {
-      rayDistance = c * h1;
+      rayDistance = lightSpeed * h1;
     }
 
     if (currentObject != -1 && currentDistance <= rayDistance)
@@ -409,10 +409,11 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
     { // Ray goes through wormhole
       currentGalaxy = otherGalaxy;
       otherGalaxy = 1 - currentGalaxy;
-      rayPosition = 2.0 * wormhole.xyz - (rayPosition + rayDirection * rayDistance);
-      gravityVector = normalize(cameraPosition - wormhole.xyz);
-      rayPosition = refl(rayPosition - wormhole.xyz, gravityVector) + wormhole.xyz;
-      cv = refl(-cv, gravityVector);
+      vec3 intersection = rayPosition + rayDirection * d;
+      gravityVector = normalize(intersection - wormhole.xyz);
+      rayPosition = 2.0 * wormhole.xyz - intersection;
+      rayDirection = -refl(rayDirection, gravityVector);
+      lightVector = -refl(lightVector, gravityVector);
     }
     else
     {
