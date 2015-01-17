@@ -285,10 +285,6 @@ void testDistance(int i, float distance, inout float currentDistance, inout int 
     currentObject = i;
   }
 }
-vec3 refl(vec3 v, vec3 n)
-{
- return v - n * 2.0 * dot(v, n);
-}
 
 vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
 {
@@ -412,8 +408,8 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
       vec3 intersection = rayPosition + rayDirection * d;
       gravityVector = normalize(intersection - wormhole.xyz);
       rayPosition = 2.0 * wormhole.xyz - intersection;
-      rayDirection = -refl(rayDirection, gravityVector);
-      lightVector = -refl(lightVector, gravityVector);
+      rayDirection = -reflect(rayDirection, gravityVector);
+      lightVector = -reflect(lightVector, gravityVector);
     }
     else
     {
@@ -456,16 +452,6 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
       }
       
       return color + computeShading(lightDirection, viewVector, normal, diffuse, specular, ambient);
-    }
-    else if (currentObject == ID_BLACKHOLE_DISK)
-    {
-      vec3 targetPosition = rayPosition + rayDirection * currentDistance;
-      return accretionDiskColor(targetPosition);
-    }
-    else if (currentObject == ID_SATURN_RING)
-    {
-      vec3 targetPosition = rayPosition + rayDirection * currentDistance;
-      return saturnRingColor(targetPosition);
     }
     else if (currentObject == ID_BLACKHOLE)
     {
