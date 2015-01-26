@@ -150,13 +150,13 @@ vec3 saturnColor(vec3 pos)
   return texture2D(texSaturn, uv).rgb;
 }
 
-vec3 panoramaColor(int n, vec3 pos)
+vec3 panoramaColor(float n, vec3 pos)
 {
   vec2 uv = vec2(
     0.5 - atan(pos.z, pos.x) / TWOPI,
     0.5 - asin(pos.y) / PI
   );
-  if (n == 0) return texture2D(texGalaxy1, uv).rgb;
+  if (n < 0.5) return texture2D(texGalaxy1, uv).rgb;
   else return texture2D(texGalaxy2, uv).rgb;
 }
 
@@ -290,8 +290,8 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
 {
   float currentDistance = INFINITY;
   int   currentObject = -1, prevObject = -1;
-  int   currentGalaxy = startGalaxy;
-  int   otherGalaxy = 1 - currentGalaxy;
+  float   currentGalaxy = float(startGalaxy);
+  float   otherGalaxy = 1.0 - currentGalaxy;
   vec3  normal;
 
   float h1, h2, rayDistance;
@@ -313,7 +313,7 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
     rayDirection = normalize(lightVector);
     lightVector = rayDirection * lightSpeed;
     
-    if (currentGalaxy == 1)
+    if (currentGalaxy > 0.5)
     {
       // Bend the light towards the black hole
       gravityVector = blackhole.xyz - rayPosition;
@@ -332,7 +332,7 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
     }
 
     // Test against objects in this universe
-    if (currentGalaxy == 0)
+    if (currentGalaxy < 0.5)
     {
       objectDistance = sphereDistance(rayPosition, rayDirection, saturn);
       testDistance(ID_SATURN, objectDistance, currentDistance, currentObject); 
@@ -351,7 +351,7 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
 
     // Test against the universe itself
     objectDistance = panoramaDistance(rayPosition, rayDirection);
-    if (currentGalaxy == 0)
+    if (currentGalaxy < 0.5)
     {
       testDistance(ID_GALAXY1, objectDistance, currentDistance, currentObject);
     }
@@ -360,7 +360,7 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
       testDistance(ID_GALAXY2, objectDistance, currentDistance, currentObject);
     }
 
-    if (currentGalaxy == 1)
+    if (currentGalaxy > 0.5)
     {
       rayDistance = lightSpeed * min(h1, h2);
     }
@@ -404,7 +404,7 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
     if (d > 0.0 && d < rayDistance)
     { // Ray goes through wormhole
       currentGalaxy = otherGalaxy;
-      otherGalaxy = 1 - currentGalaxy;
+      otherGalaxy = 1.0 - currentGalaxy;
       vec3 intersection = rayPosition + rayDirection * d;
       gravityVector = normalize(intersection - wormhole.xyz);
       rayPosition = 2.0 * wormhole.xyz - intersection;
@@ -417,7 +417,7 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
     }
   }
   
-  if (startGalaxy == 0 && currentGalaxy == 1)
+  if (startGalaxy == 0 && currentGalaxy > 0.5)
   {
     objectDistance = sphereDistance(rayPosition, rayDirection, blackhole);
     testDistance(ID_BLACKHOLE, objectDistance, currentDistance, currentObject);
