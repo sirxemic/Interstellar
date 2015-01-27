@@ -345,6 +345,9 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
       objectDistance = sphereDistance(rayPosition, rayDirection, planet);
       testDistance(ID_PLANET, objectDistance, currentDistance, currentObject); 
       
+      objectDistance = sphereDistance(rayPosition, rayDirection, blackhole);
+      testDistance(ID_BLACKHOLE, objectDistance, currentDistance, currentObject); 
+      
       objectDistance = ringDistance(rayPosition, rayDirection, blackhole.xyz, blackhole.w * blackholeDisk);
       testDistance(ID_BLACKHOLE_DISK, objectDistance, currentDistance, currentObject); 
     }
@@ -415,12 +418,6 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
     {
       rayPosition += rayDirection * rayDistance;
     }
-  }
-  
-  if (startGalaxy == 0 && currentGalaxy > 0.5)
-  {
-    objectDistance = sphereDistance(rayPosition, rayDirection, blackhole);
-    testDistance(ID_BLACKHOLE, objectDistance, currentDistance, currentObject);
   }
 
   if (currentObject != -1)

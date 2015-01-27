@@ -170,7 +170,7 @@ var Simulation = {
     
     // Ring definition - xyz is normal going through ring. Its magnitude determines inner radius.
     // w component determines outer radius
-    this.blackholeDisk = new THREE.Vector4(5.34, 0.0, 0.0, 40.0);
+    this.blackholeDisk = new THREE.Vector4(6.0, 0.0, 0.0, 50.0);
     this.saturnRings = new THREE.Vector4(1.67, 0.0, 0.0, 2.33);
     
     var rotation = new THREE.Quaternion();
@@ -192,9 +192,8 @@ var Simulation = {
       "blackholeDisk": { type: "v4", value: this.blackholeDisk },
       "saturnRings": { type: "v4", value: this.saturnRings },
       
-      "planetDiffuse": { type: "v3", value: new THREE.Vector3(0.0,0.8,0.0) },
-      "planetSpecular": { type: "v3", value: new THREE.Vector3(0.2,0.5,0.5) },
-      
+      "planetDiffuse": { type: "v3", value: new THREE.Vector3(0.58,0.85,0.96) },
+      "planetSpecular": { type: "v3", value: new THREE.Vector3(0.1,0.1,0.1) },
       "texSaturn": { type: "t", value: THREE.ImageUtils.loadTexture("saturn.jpg") },
       "texSaturnRings": { type: "t", value: THREE.ImageUtils.loadTexture("saturnrings.png") },
       "texGalaxy1":  { type: "t", value: THREE.ImageUtils.loadTexture("galaxy1.png") },
