@@ -29,13 +29,9 @@ var Simulation = {
     
     this.quadScene.add(new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), new THREE.ShaderMaterial({
       uniforms: this.uniforms,
-      
-      defines: {
-        NO_EDGE: 1
-      },
     
-      vertexShader: document.getElementById("vertexShaderDepth").textContent,
-      fragmentShader: document.getElementById("fragmentShaderDepth").textContent,
+      vertexShader: document.getElementById("vertexShader").textContent,
+      fragmentShader: document.getElementById("fragmentShader").textContent,
     })));
     
     this.renderPasses = [
@@ -163,15 +159,19 @@ var Simulation = {
   
   initScene: function()
   {
-    this.wormholePositionSize = new THREE.Vector4(2, -5.0, -28, 0.3);
-    this.blackholePositionSize = new THREE.Vector4(0.0, -250.0, 250.0, 3);
+    this.wormholePositionSize = new THREE.Vector4(2, -5.0, -28, 0.25);
+    this.blackholePositionSize = new THREE.Vector4(0.0, -250.0, 250.0, 12.5);
     this.saturnPositionSize = new THREE.Vector4(-14, 5, -40, 8.0);
-    this.planetPositionSize = new THREE.Vector4(5.84, -200.3, 211.96, 0.08);
+    this.planetPositionSize = new THREE.Vector4(7.6, 62, -50, 0.08);
+    
+    this.planetPositionSize.x += this.blackholePositionSize.x;
+    this.planetPositionSize.y += this.blackholePositionSize.y;
+    this.planetPositionSize.z += this.blackholePositionSize.z;
     
     // Ring definition - xyz is normal going through ring. Its magnitude determines inner radius.
     // w component determines outer radius
-    this.blackholeDisk = new THREE.Vector4(6.0, 0.0, 0.0, 50.0);
-    this.saturnRings = new THREE.Vector4(1.67, 0.0, 0.0, 2.33);
+    this.blackholeDisk = new THREE.Vector4(18.0, 0.0, 0.0, 150.0);
+    this.saturnRings = new THREE.Vector4(13.36, 0.0, 0.0, 18.64);
     
     var rotation = new THREE.Quaternion();
     rotation.setFromAxisAngle((new THREE.Vector3(0, -1, 2)).normalize(), 2.3);
@@ -183,8 +183,6 @@ var Simulation = {
     this.uniforms = {
       "wormhole": { type: "v4", value: this.wormholePositionSize },
       "blackhole": { type: "v4", value: this.blackholePositionSize },
-      "gravityWormhole": { type: "f", value: 0.01 },
-      "gravityBlackhole": { type: "f", value: 0.5 },
       
       "saturn":  { type: "v4", value: this.saturnPositionSize },
       "planet":  { type: "v4", value: this.planetPositionSize },
@@ -203,8 +201,6 @@ var Simulation = {
       "lightDirection": { type: "v3", value: new THREE.Vector3(-1, 0, 0) },
       
       "rayMatrix": { type: "m4", value: new THREE.Matrix4() },
-      "lightSpeed": { type: "f", value: 0.2 },
-      "stepSize": { type: "f", value: 1.0 },
       
       "startGalaxy": { type: "i", value: 0 },
       "cameraPosition": { type: "v3" },
