@@ -37,7 +37,7 @@ var Simulation = {
     this.renderPasses = [
       new THREE.RenderPass(this.quadScene, this.quadCam),
       new THREE.BloomPass(1.25),
-      new THREE.FilmPass(0.35, 0.95, 2048, false)
+      new THREE.ShaderPass(THREE.CopyShader)
     ];
 
     this.renderPasses[this.renderPasses.length - 1].renderToScreen = true;
@@ -97,6 +97,18 @@ var Simulation = {
       updateResolution();
     };
 
+    var onWheel = function(e) {
+      var delta = e.delta || (e.deltaX + e.deltaY + e.deltaZ);
+      if (delta < 0)
+      {
+        self.rayMatrix.elements[10] *= 1.06;
+      }
+      else
+      {
+        self.rayMatrix.elements[10] /= 1.06;
+      }
+    };
+
     window.addEventListener("resize", onWindowResize, false);
     onWindowResize();
 
@@ -104,6 +116,8 @@ var Simulation = {
       updateResolution();
       event.target.blur();
     }, false);
+
+    window.addEventListener("wheel", onWheel, false);
   },
 
   initControls: function()
@@ -196,7 +210,7 @@ var Simulation = {
       "texSaturnRings": { type: "t", value: THREE.ImageUtils.loadTexture("saturnrings.png") },
       "texGalaxy1":  { type: "t", value: THREE.ImageUtils.loadTexture("galaxy1.png") },
       "texGalaxy2":  { type: "t", value: THREE.ImageUtils.loadTexture("galaxy2.png") },
-      "texAccretionDisk": { type: "t", value: THREE.ImageUtils.loadTexture("accretiondisk.jpg") },
+      "texAccretionDisk": { type: "t", value: THREE.ImageUtils.loadTexture("accretion_disk.png") },
 
       "lightDirection": { type: "v3", value: new THREE.Vector3(-1, 0, 0) },
 
@@ -270,9 +284,8 @@ var Simulation = {
     }
 
     var rotationMatrix = new THREE.Matrix4();
-
-
     rotationMatrix.makeRotationFromQuaternion(this.camera.quaternion);
+
     this.uniforms.rayMatrix.value.copy(rotationMatrix);
     this.uniforms.rayMatrix.value.multiply(this.rayMatrix);
 
