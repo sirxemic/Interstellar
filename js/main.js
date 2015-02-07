@@ -196,7 +196,7 @@ var Simulation = {
       "texSaturnRings": { type: "t", value: THREE.ImageUtils.loadTexture("saturnrings.png") },
       "texGalaxy1":  { type: "t", value: THREE.ImageUtils.loadTexture("galaxy1.png") },
       "texGalaxy2":  { type: "t", value: THREE.ImageUtils.loadTexture("galaxy2.png") },
-      "texAccretionDisk": { type: "t", value: THREE.ImageUtils.loadTexture("accretiondisk.jpg") },
+      "texAccretionDisk": { type: "t", value: THREE.ImageUtils.loadTexture("accretion_disk.png") },
 
       "lightDirection": { type: "v3", value: new THREE.Vector3(-1, 0, 0) },
 
