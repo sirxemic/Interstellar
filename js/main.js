@@ -37,7 +37,7 @@ var Simulation = {
     this.renderPasses = [
       new THREE.RenderPass(this.quadScene, this.quadCam),
       new THREE.BloomPass(1.25),
-      new THREE.FilmPass(0.35, 0.95, 2048, false)
+      new THREE.ShaderPass(THREE.CopyShader)
     ];
 
     this.renderPasses[this.renderPasses.length - 1].renderToScreen = true;
