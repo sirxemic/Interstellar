@@ -384,6 +384,8 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
 
       rayPosition = 2.0 * wormhole.xyz - intersection;
       rayDirection = -reflect(rayDirection, gravityVector);
+
+      rayPosition += rayDirection * d;
     }
     else
     {
