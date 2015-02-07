@@ -97,6 +97,18 @@ var Simulation = {
       updateResolution();
     };
 
+    var onWheel = function(e) {
+      var delta = e.delta || (e.deltaX + e.deltaY + e.deltaZ);
+      if (delta < 0)
+      {
+        self.rayMatrix.elements[10] *= 1.06;
+      }
+      else
+      {
+        self.rayMatrix.elements[10] /= 1.06;
+      }
+    };
+
     window.addEventListener("resize", onWindowResize, false);
     onWindowResize();
 
@@ -104,6 +116,8 @@ var Simulation = {
       updateResolution();
       event.target.blur();
     }, false);
+
+    window.addEventListener("wheel", onWheel, false);
   },
 
   initControls: function()
@@ -270,9 +284,8 @@ var Simulation = {
     }
 
     var rotationMatrix = new THREE.Matrix4();
-
-
     rotationMatrix.makeRotationFromQuaternion(this.camera.quaternion);
+
     this.uniforms.rayMatrix.value.copy(rotationMatrix);
     this.uniforms.rayMatrix.value.multiply(this.rayMatrix);
 
