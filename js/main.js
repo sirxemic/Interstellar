@@ -1,4 +1,7 @@
-if (!Detector.webgl) Detector.addGetWebGLMessage();
+if (!Detector.webgl) {
+  document.body.classList.add("no-ui");
+  Detector.addGetWebGLMessage({id: "webgl-error"});
+}
 
 var _tempVector = new THREE.Vector3();
 
