@@ -1,4 +1,7 @@
-if (!Detector.webgl) Detector.addGetWebGLMessage();
+if (!Detector.webgl) {
+  document.body.classList.add("no-ui");
+  Detector.addGetWebGLMessage({id: "webgl-error"});
+}
 
 var _tempVector = new THREE.Vector3();
 
@@ -65,6 +68,22 @@ var Simulation = {
     this.stats.domElement.style.zIndex = 100;
     document.body.appendChild(this.stats.domElement);
 
+    var uiToggle = document.querySelector(".ui-toggle input");
+
+    var onUIToggle = function() {
+      if (uiToggle.checked) {
+        document.body.classList.add("no-ui");
+      }
+      else {
+        document.body.classList.remove("no-ui");
+      }
+      uiToggle.blur();
+    };
+
+    uiToggle.addEventListener("change", onUIToggle);
+
+    onUIToggle();
+
     var updateResolution = function()
     {
       var size = parseInt(document.querySelector("[name=resolution]:checked").value),
@@ -73,6 +92,8 @@ var Simulation = {
 
       self.composer.setSize(width, height);
     };
+    
+    this.zoom = 1;
 
     var onWindowResize = function()
     {
@@ -91,22 +112,25 @@ var Simulation = {
       }
       self.rayMatrix.set(vx, 0, 0, 0,
                          0, vy, 0, 0,
-                         0, 0, -1, 0,
+                         0, 0, -self.zoom, 0,
                          0, 0, 0, 1);
 
       updateResolution();
     };
 
     var onWheel = function(e) {
+      e.preventDefault();
+
       var delta = e.delta || (e.deltaX + e.deltaY + e.deltaZ);
       if (delta < 0)
       {
-        self.rayMatrix.elements[10] *= 1.06;
+        self.zoom *= 1.06;
       }
       else
       {
-        self.rayMatrix.elements[10] /= 1.06;
+        self.zoom /= 1.06;
       }
+      self.rayMatrix.elements[10] = -self.zoom;
     };
 
     window.addEventListener("resize", onWindowResize, false);

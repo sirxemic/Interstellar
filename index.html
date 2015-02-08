@@ -16,6 +16,25 @@
       font-family: Monospace;
       font-size: 12px;
     }
+    
+    #webgl-error {
+      display: block;
+      text-align: center;
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      -webkit-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+    }
+    
+    #webgl-error a {
+      color: orange
+    }
+
+    #info, #resolution, #stats {
+      -webkit-transition: -webkit-transform 0.2s ease;
+      transition: transform 0.2s ease;
+    }
 
     #info {
       position: fixed;
@@ -26,15 +45,51 @@
       z-index: 10;
     }
 
+    .no-ui #info {
+      -webkit-transform: translateY(-100%);
+      transform: translateY(-100%);
+    }
+
     #resolution {
       position: fixed;
-      bottom: 5px;
-      right: 5px;
+      bottom: 0;
+      right: 0;
+      padding: 5px;
       z-index: 10;
+    }
+
+    .no-ui #resolution {
+      -webkit-transform: translateX(100%);
+      transform: translateX(100%);
     }
 
     #resolution > label {
       display: block;
+    }
+
+    .ui-toggle {
+      position: fixed;
+      bottom: 5px;
+      left: 5px;
+      z-index: 10;
+      transition: opacity 0.2s ease;
+    }
+
+    .ui-toggle input, .ui-toggle label {
+      cursor: pointer;
+    }
+
+    .no-ui .ui-toggle:hover {
+      opacity: 1;
+    }
+
+    .no-ui .ui-toggle {
+      opacity: 0;
+    }
+
+    .no-ui #stats {
+      -webkit-transform: translateX(-100%);
+      transform: translateX(-100%);
     }
 
     h3 {
@@ -88,6 +143,10 @@
   <label><input type="radio" name="resolution" value="4" checked> 4x4</label>
   <label><input type="radio" name="resolution" value="2"> 2x2</label>
   <label><input type="radio" name="resolution" value="1"> 1x1</label>
+</div>
+
+<div class="ui-toggle">
+  <label><input type="checkbox"> Hide UI</label>
 </div>
 
 <div id="container"></div>
