@@ -65,6 +65,22 @@ var Simulation = {
     this.stats.domElement.style.zIndex = 100;
     document.body.appendChild(this.stats.domElement);
 
+    var uiToggle = document.querySelector(".ui-toggle input");
+
+    var onUIToggle = function() {
+      if (uiToggle.checked) {
+        document.body.classList.add("no-ui");
+      }
+      else {
+        document.body.classList.remove("no-ui");
+      }
+      uiToggle.blur();
+    };
+
+    uiToggle.addEventListener("change", onUIToggle);
+
+    onUIToggle();
+
     var updateResolution = function()
     {
       var size = parseInt(document.querySelector("[name=resolution]:checked").value),
@@ -98,6 +114,8 @@ var Simulation = {
     };
 
     var onWheel = function(e) {
+      e.preventDefault();
+
       var delta = e.delta || (e.deltaX + e.deltaY + e.deltaZ);
       if (delta < 0)
       {
