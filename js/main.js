@@ -89,6 +89,8 @@ var Simulation = {
 
       self.composer.setSize(width, height);
     };
+    
+    this.zoom = 1;
 
     var onWindowResize = function()
     {
@@ -107,7 +109,7 @@ var Simulation = {
       }
       self.rayMatrix.set(vx, 0, 0, 0,
                          0, vy, 0, 0,
-                         0, 0, -1, 0,
+                         0, 0, -self.zoom, 0,
                          0, 0, 0, 1);
 
       updateResolution();
@@ -119,12 +121,13 @@ var Simulation = {
       var delta = e.delta || (e.deltaX + e.deltaY + e.deltaZ);
       if (delta < 0)
       {
-        self.rayMatrix.elements[10] *= 1.06;
+        self.zoom *= 1.06;
       }
       else
       {
-        self.rayMatrix.elements[10] /= 1.06;
+        self.zoom /= 1.06;
       }
+      self.rayMatrix.elements[10] = -self.zoom;
     };
 
     window.addEventListener("resize", onWindowResize, false);
