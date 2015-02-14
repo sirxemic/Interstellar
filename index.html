@@ -180,6 +180,7 @@ uniform vec3 planetDiffuse;
 uniform vec3 planetSpecular;
 
 uniform vec4 wormhole;
+uniform float wormholeGravityRatio;
 uniform vec4 blackhole;
 
 uniform vec4 saturn;
@@ -367,8 +368,10 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
     // 0.86: rate of smaller steps when approaching wormhole
     stepSize = rayDistance - wormhole.w * 0.86;
 
-    // rayAccel = normalize(gravityVector) * gravityWormhole / (rayDistance * rayDistance);
-    rayAccel = gravityVector * gravityWormhole / (rayDistance * rayDistance * rayDistance);
+    rayDistance -= wormhole.w * (1.0 - wormholeGravityRatio);
+
+    float amount = wormholeGravityRatio / rayDistance;
+    rayAccel = normalize(gravityVector) * gravityWormhole * amount * amount;
 
     if (currentGalaxy > 0.5)
     {
@@ -381,6 +384,11 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
 
       // rayAccel += normalize(gravityVector) * gravityBlackhole / (rayDistance * rayDistance)
       rayAccel += gravityVector * gravityBlackhole / (rayDistance * rayDistance * rayDistance);
+    }
+
+    if (length(rayAccel) > lightSpeed)
+    {
+      rayAccel = normalize(rayAccel) * lightSpeed;
     }
 
     rayDirection = normalize(rayDirection * lightSpeed + rayAccel * stepSize);

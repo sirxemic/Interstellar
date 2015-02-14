@@ -20,6 +20,8 @@ var Simulation = {
 
     // Init THREE.js stuff
     this.camera = new THREE.OrthographicCamera(-1, 1, -1, 1, 0, 1);
+    
+    this.camera.lookAt(this.wormholePositionSize);
 
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -92,7 +94,7 @@ var Simulation = {
 
       self.composer.setSize(width, height);
     };
-    
+
     this.zoom = 1;
 
     var onWindowResize = function()
@@ -197,7 +199,7 @@ var Simulation = {
 
   initScene: function()
   {
-    this.wormholePositionSize = new THREE.Vector4(2, -5.0, -28, 0.25);
+    this.wormholePositionSize = new THREE.Vector4(5, -5.0, -30, 0.6);
     this.blackholePositionSize = new THREE.Vector4(0.0, -250.0, 250.0, 12.5);
     this.saturnPositionSize = new THREE.Vector4(-14, 5, -40, 8.0);
     this.planetPositionSize = new THREE.Vector4(7.6, 62, -50, 0.08);
@@ -232,6 +234,9 @@ var Simulation = {
 
     this.uniforms = {
       "wormhole": { type: "v4", value: this.wormholePositionSize },
+      "wormholeGravityRatio": { type: "f", value: 0.1 },
+      // 1 = like a black hole but with the mouth at the event horizon (big gravitational well)
+      // 0 = completely flat space (no gravity at all)
       "blackhole": { type: "v4", value: this.blackholePositionSize },
 
       "saturn":  { type: "v4", value: this.saturnPositionSize },
