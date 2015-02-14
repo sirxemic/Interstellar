@@ -218,6 +218,18 @@ var Simulation = {
     rotation.setFromAxisAngle((new THREE.Vector3(2, 1, 3)).normalize(), 1.8);
     THREE.Vector3.prototype.applyQuaternion.call(this.saturnRings, rotation);
 
+    var numTexturesLoaded = 0;
+    var textureCount = 0;
+    var updateProgress = function() {
+      numTexturesLoaded++;
+      if (numTexturesLoaded == textureCount)
+      {
+        var el = document.getElementById("loading");
+        el.parentElement.removeChild(el);
+        Simulation.inited = true;
+      }
+    };
+
     this.uniforms = {
       "wormhole": { type: "v4", value: this.wormholePositionSize },
       "blackhole": { type: "v4", value: this.blackholePositionSize },
@@ -230,11 +242,11 @@ var Simulation = {
 
       "planetDiffuse": { type: "v3", value: new THREE.Vector3(0.58,0.85,0.96) },
       "planetSpecular": { type: "v3", value: new THREE.Vector3(0.1,0.1,0.1) },
-      "texSaturn": { type: "t", value: THREE.ImageUtils.loadTexture("saturn.jpg") },
-      "texSaturnRings": { type: "t", value: THREE.ImageUtils.loadTexture("saturnrings.png") },
-      "texGalaxy1":  { type: "t", value: THREE.ImageUtils.loadTexture("galaxy1.png") },
-      "texGalaxy2":  { type: "t", value: THREE.ImageUtils.loadTexture("galaxy2.png") },
-      "texAccretionDisk": { type: "t", value: THREE.ImageUtils.loadTexture("accretion_disk.png") },
+      "texSaturn": { type: "t", value: THREE.ImageUtils.loadTexture("saturn.jpg", null, updateProgress) },
+      "texSaturnRings": { type: "t", value: THREE.ImageUtils.loadTexture("saturnrings.png", null, updateProgress) },
+      "texGalaxy1":  { type: "t", value: THREE.ImageUtils.loadTexture("galaxy1.png", null, updateProgress) },
+      "texGalaxy2":  { type: "t", value: THREE.ImageUtils.loadTexture("galaxy2.png", null, updateProgress) },
+      "texAccretionDisk": { type: "t", value: THREE.ImageUtils.loadTexture("accretion_disk.png", null, updateProgress) },
 
       "lightDirection": { type: "v3", value: new THREE.Vector3(-1, 0, 0) },
 
@@ -243,6 +255,11 @@ var Simulation = {
       "startGalaxy": { type: "i", value: 0 },
       "cameraPosition": { type: "v3" },
     };
+
+    for (var uniform in this.uniforms)
+    {
+      if (this.uniforms[uniform].type == "t") textureCount++;
+    }
   },
 
   step: function()
@@ -281,8 +298,11 @@ var Simulation = {
     var prevPosition = _tempVector;
     prevPosition.copy(this.camera.position);
 
-    this.keyboardControls.update(delta);
-    this.tabletControls.update(delta);
+    if (this.inited)
+    {
+      this.keyboardControls.update(delta);
+      this.tabletControls.update(delta);
+    }
 
     if (this.camera.position.distanceTo(wormholePosition) < wormholeRadius && prevPosition.distanceTo(wormholePosition) >= wormholeRadius)
     {
