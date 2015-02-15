@@ -20,7 +20,7 @@ var Simulation = {
 
     // Init THREE.js stuff
     this.camera = new THREE.OrthographicCamera(-1, 1, -1, 1, 0, 1);
-    
+
     this.camera.lookAt(this.wormholePositionSize);
 
     this.renderer = new THREE.WebGLRenderer();
@@ -232,9 +232,11 @@ var Simulation = {
       }
     };
 
+    this.wormholeGravityRatio = 0.1;
+
     this.uniforms = {
       "wormhole": { type: "v4", value: this.wormholePositionSize },
-      "wormholeGravityRatio": { type: "f", value: 0.1 },
+      "wormholeGravityRatio": { type: "f", value: this.wormholeGravityRatio },
       // 1 = like a black hole but with the mouth at the event horizon (big gravitational well)
       // 0 = completely flat space (no gravity at all)
       "blackhole": { type: "v4", value: this.blackholePositionSize },
@@ -265,11 +267,19 @@ var Simulation = {
     {
       if (this.uniforms[uniform].type == "t") textureCount++;
     }
+
+    // Some entities to calculate with
+    this.wormholeSphere = new THREE.Sphere(this.wormholePositionSize, this.wormholePositionSize.w);
   },
 
   step: function()
   {
+    if (this.inited)
+    {
+      this.update();
+    }
     this.render();
+
     this.stats.update();
   },
 
@@ -289,60 +299,93 @@ var Simulation = {
     animate();
   },
 
-  _diff: new THREE.Vector3(),
-  _axis: new THREE.Vector3(),
-  _intersection: new THREE.Vector3(),
-  _rotation: new THREE.Quaternion(),
+  update: (function() {
+
+    var prevPosition   = new THREE.Vector3(),
+        prevQuaternion = new THREE.Quaternion(),
+        velocity       = new THREE.Vector3(),
+        direction      = new THREE.Vector3(),
+        intersection   = new THREE.Vector3(),
+        axis           = new THREE.Vector3(),
+        rotation       = new THREE.Quaternion(),
+        temp           = new THREE.Vector3(),
+        ray            = new THREE.Ray();
+
+    return function() {
+      var delta = this.clock.getDelta(),
+          wormholePosition = this.wormholePositionSize;
+
+      prevPosition.copy(this.camera.position);
+      prevQuaternion.copy(this.camera.quaternion);
+
+      // Handle input
+      this.keyboardControls.update(delta);
+      this.tabletControls.update(delta);
+
+      // Apply wormhole curvature/gravity.
+      this.applyWormholeCurvature(prevPosition, delta);
+
+      // Check if we're going through the wormhole
+      velocity.subVectors(this.camera.position, prevPosition);
+      direction.copy(velocity).normalize();
+
+      ray.set(prevPosition, direction);
+
+      var at = ray.intersectSphere(this.wormholeSphere, intersection);
+      if (at && at.distanceToSquared(prevPosition) <= velocity.lengthSq())
+      {
+        // Rotate 180 degrees around axis pointing at exit point
+        axis.subVectors(intersection, wormholePosition).normalize();
+        rotation.setFromAxisAngle(axis, Math.PI);
+        this.camera.quaternion.multiplyQuaternions(rotation, this.camera.quaternion);
+
+        // Set new camera position a tiny bit outside mirrored intersection point
+        this.camera.position.copy(wormholePosition).add(temp.subVectors(wormholePosition, intersection).multiplyScalar(1.0001));
+
+        this.uniforms.startGalaxy.value = 1 - this.uniforms.startGalaxy.value;
+      }
+    };
+  })(),
 
   render: function()
   {
-    var delta = this.clock.getDelta(),
-        wormholePosition = this.wormholePositionSize,
-        wormholeRadius = this.wormholePositionSize.w;
-
-    var prevPosition = _tempVector;
-    prevPosition.copy(this.camera.position);
-
-    if (this.inited)
-    {
-      this.keyboardControls.update(delta);
-      this.tabletControls.update(delta);
-    }
-
-    if (this.camera.position.distanceTo(wormholePosition) < wormholeRadius && prevPosition.distanceTo(wormholePosition) >= wormholeRadius)
-    {
-      // Calculate where exactly we passed through the wormhole
-      this._diff.subVectors(this.camera.position, prevPosition).normalize();
-
-      this._intersection.subVectors(prevPosition, wormholePosition);
-      var p = this._intersection.dot(this._diff);
-      var d = p * p + wormholeRadius * wormholeRadius - this._intersection.dot(this._intersection);
-      this._intersection.copy(this._diff).multiplyScalar(-p - Math.sqrt(d)).add(prevPosition);
-
-      // Rotate 180 degrees around axis pointing at exit point
-      var axis = _tempVector;
-      axis.subVectors(this._intersection, wormholePosition).normalize();
-      this._rotation.setFromAxisAngle(axis, Math.PI);
-      this.camera.quaternion.multiplyQuaternions(this._rotation, this.camera.quaternion);
-
-      // Set new camera position a tiny bit outside mirrored intersection point
-      var temp = _tempVector;
-      this.camera.position.copy(wormholePosition).add(temp.subVectors(wormholePosition, this._intersection).multiplyScalar(1.0001));
-
-      this.uniforms.startGalaxy.value = 1 - this.uniforms.startGalaxy.value;
-    }
-
-    var rotationMatrix = new THREE.Matrix4();
-    rotationMatrix.makeRotationFromQuaternion(this.camera.quaternion);
-
-    this.uniforms.rayMatrix.value.copy(rotationMatrix);
+    this.uniforms.rayMatrix.value.makeRotationFromQuaternion(this.camera.quaternion);
     this.uniforms.rayMatrix.value.multiply(this.rayMatrix);
 
     this.uniforms.cameraPosition.value = this.camera.position;
 
     this.renderer.clear();
-    this.composer.render( 0.01 );
-  }
+    this.composer.render();
+  },
+
+  applyWormholeCurvature: (function() {
+
+    var velocity = new THREE.Vector3(),
+        newVelocity = new THREE.Vector3(),
+        gravityVector = new THREE.Vector3(),
+        acceleration = new THREE.Vector3(),
+        rotation = new THREE.Quaternion();
+
+    var record = 0;
+
+    return function(prevPosition, delta) {
+      velocity.subVectors(this.camera.position, prevPosition).multiplyScalar(1 / delta);
+      var speedSq = velocity.lengthSq();
+      newVelocity.copy(velocity);
+
+      gravityVector.subVectors(this.wormholePositionSize, prevPosition);
+      var rayDistance = gravityVector.length() - this.wormholePositionSize.w * (1 - this.wormholeGravityRatio);
+      var amount = this.wormholeGravityRatio / rayDistance;
+      acceleration.copy(gravityVector.normalize()).multiplyScalar(this.wormholePositionSize.w * speedSq * amount * amount);
+
+      newVelocity.add(acceleration.multiplyScalar(delta));
+
+      this.camera.position.addVectors(prevPosition, newVelocity.multiplyScalar(delta));
+
+      rotation.setFromUnitVectors(velocity.normalize(), newVelocity.normalize());
+      this.camera.quaternion.multiplyQuaternions(rotation, this.camera.quaternion);
+    };
+  })(),
 };
 
 Simulation.init();
