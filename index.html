@@ -242,26 +242,10 @@ vec3 accretionDiskColor(vec3 pos)
   // Important! Scale radii according to black hole
   float v = clamp((dist - r1) / (r2 - r1), 0.0, 1.0);
 
-  // Normalize all relevant vectors for computing U
-  vec3 ringNormal = blackholeDisk.xyz / r1;
-  pos /= dist;
+  vec3 base = cross(blackholeDisk.xyz, vec3(0.0, 0.0, 1.0));
+  float angle = acos(dot(normalize(base), normalize(pos)));
+  if (dot(cross(base, pos), blackholeDisk.xyz) < 0.0) angle = -angle;
 
-  // Construct a quaternion that rotates the ring and pos onto the xy-plane
-  vec3 origin = vec3(0.0, 0.0, 1.0);
-  vec4 axisAngle = vec4(cross(ringNormal, origin), dot(ringNormal, origin));
-  vec4 q = vec4(sin(axisAngle.w * 0.5) * axisAngle.xyz, cos(axisAngle.w * 0.5));
-
-  vec4 i = vec4(
-    + q.w * pos.x + q.y * pos.z - q.z * pos.y,
-    + q.w * pos.y + q.z * pos.x - q.x * pos.z,
-    + q.w * pos.z + q.x * pos.y - q.y * pos.x,
-    - q.x * pos.x - q.y * pos.y - q.z * pos.z
-  );
-
-  pos.x = i.x * q.w - i.w * q.x - i.y * q.z + i.z * q.y;
-  pos.y = i.y * q.w - i.w * q.y - i.z * q.x + i.x * q.z;
-
-  float angle = atan(pos.y, pos.x);
   float u = 0.5 - angle / TWOPI;
   return texture2D(texAccretionDisk, vec2(u, v)).rgb;
 }
@@ -347,8 +331,7 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
 {
   float currentDistance = INFINITY;
   int   currentObject = -1, prevObject = -1;
-  float   currentGalaxy = float(startGalaxy);
-  float   otherGalaxy = 1.0 - currentGalaxy;
+  float currentGalaxy = float(startGalaxy);
   vec3  normal;
 
   float stepSize, rayDistance;
@@ -456,8 +439,7 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
     float d = sphereDistance(rayPosition, rayDirection, wormhole);
     if (d > 0.0 && d < rayDistance)
     { // Ray goes through wormhole
-      currentGalaxy = otherGalaxy;
-      otherGalaxy = 1.0 - currentGalaxy;
+      currentGalaxy = 1.0 - currentGalaxy;
       vec3 intersection = rayPosition + rayDirection * d;
       gravityVector = normalize(intersection - wormhole.xyz);
 
