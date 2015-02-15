@@ -267,6 +267,8 @@ var Simulation = {
     {
       if (this.uniforms[uniform].type == "t") textureCount++;
     }
+    
+    this.uniforms.texAccretionDisk.value.wrapS = THREE.RepeatWrapping
 
     // Some entities to calculate with
     this.wormholeSphere = new THREE.Sphere(this.wormholePositionSize, this.wormholePositionSize.w);
