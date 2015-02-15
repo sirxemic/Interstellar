@@ -199,7 +199,7 @@ var Simulation = {
 
   initScene: function()
   {
-    this.wormholePositionSize = new THREE.Vector4(5, -5.0, -30, 0.6);
+    this.wormholePositionSize = new THREE.Vector4(10, 0.0, -32, 0.6);
     this.blackholePositionSize = new THREE.Vector4(0.0, -250.0, 250.0, 12.5);
     this.saturnPositionSize = new THREE.Vector4(-14, 5, -40, 8.0);
     this.planetPositionSize = new THREE.Vector4(7.6, 62, -50, 0.08);
@@ -210,15 +210,8 @@ var Simulation = {
 
     // Ring definition - xyz is normal going through ring. Its magnitude determines inner radius.
     // w component determines outer radius
-    this.blackholeDisk = new THREE.Vector4(18.0, 0.0, 0.0, 150.0);
-    this.saturnRings = new THREE.Vector4(13.36, 0.0, 0.0, 18.64);
-
-    var rotation = new THREE.Quaternion();
-    rotation.setFromAxisAngle((new THREE.Vector3(0, -1, 2)).normalize(), 2.3);
-    THREE.Vector3.prototype.applyQuaternion.call(this.blackholeDisk, rotation);
-
-    rotation.setFromAxisAngle((new THREE.Vector3(2, 1, 3)).normalize(), 1.8);
-    THREE.Vector3.prototype.applyQuaternion.call(this.saturnRings, rotation);
+    this.blackholeDisk = new THREE.Vector4(-12, 12, 6, 150.0);
+    this.saturnRings = new THREE.Vector4(0, 9.22, 0, 17.1);
 
     var numTexturesLoaded = 0;
     var textureCount = 0;
@@ -255,7 +248,7 @@ var Simulation = {
       "texGalaxy2":  { type: "t", value: THREE.ImageUtils.loadTexture("galaxy2.png", null, updateProgress) },
       "texAccretionDisk": { type: "t", value: THREE.ImageUtils.loadTexture("accretion_disk.png", null, updateProgress) },
 
-      "lightDirection": { type: "v3", value: new THREE.Vector3(-1, 0, 0) },
+      "lightDirection": { type: "v3", value: (new THREE.Vector3(-4, 2, 3)).normalize() },
 
       "rayMatrix": { type: "m4", value: new THREE.Matrix4() },
 
@@ -367,8 +360,6 @@ var Simulation = {
         gravityVector = new THREE.Vector3(),
         acceleration = new THREE.Vector3(),
         rotation = new THREE.Quaternion();
-
-    var record = 0;
 
     return function(prevPosition, delta) {
       velocity.subVectors(this.camera.position, prevPosition).multiplyScalar(1 / delta);
