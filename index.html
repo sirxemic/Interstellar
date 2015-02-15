@@ -332,6 +332,7 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
   float currentDistance = INFINITY;
   int   currentObject = -1, prevObject = -1;
   float currentGalaxy = float(startGalaxy);
+  vec3  currentPosition;
   vec3  normal;
 
   float stepSize, rayDistance;
@@ -415,20 +416,23 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
       // But if it's something transparent, get its color, and continue
       if (currentObject == ID_BLACKHOLE_DISK)
       {
-        vec3 targetPosition = rayPosition + rayDirection * currentDistance;
-        color += accretionDiskColor(targetPosition);
+        currentPosition = rayPosition + rayDirection * currentDistance;
+        color += accretionDiskColor(currentPosition);
         currentObject = -1;
         prevObject = ID_BLACKHOLE_DISK;
       }
       else if (currentObject == ID_SATURN_RING)
       {
-        vec3 targetPosition = rayPosition + rayDirection * currentDistance;
+        currentPosition = rayPosition + rayDirection * currentDistance;
         if (prevObject != ID_SATURN_RING)
         {
-          color += saturnRingColor(targetPosition);
+          color += saturnRingColor(currentPosition);
         }
         currentObject = -1;
         prevObject = ID_SATURN_RING;
+        
+        // Ensure we don't overstep and go through Saturn
+        rayDistance = min(rayDistance, 0.9 * (length(saturnRings.xyz) - saturn.w));
       }
       else
       {
@@ -454,7 +458,7 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
     }
   }
 
-  vec3 currentPosition = rayPosition + rayDirection * currentDistance;
+  currentPosition = rayPosition + rayDirection * currentDistance;
 
   if (currentObject == ID_GALAXY1 || currentObject == ID_GALAXY2)
   {
