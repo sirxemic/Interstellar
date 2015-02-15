@@ -7,4 +7,5 @@ The wormhole and black hole in the movie Interstellar looked pretty awesome. Tra
 
 #### Texture credits:
 - Saturn surface: http://new.math.uiuc.edu/oldnew/MA198-2008/wldavis/images/saturn_surface.jpg
+- Saturn rings: http://alpha-element.deviantart.com/art/Stock-Image-Saturn-Rings-393767006
 - Galaxy: http://www.geckzilla.com/apod/tycho_cyl_glow.png (processed)
