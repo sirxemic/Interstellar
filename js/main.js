@@ -309,6 +309,12 @@ var Simulation = {
     return function() {
       var delta = this.clock.getDelta(),
           wormholePosition = this.wormholePositionSize;
+          
+      // TODO: figure out why delta can become so small
+      if (delta < 0.001)
+      {
+        delta = 0.001;
+      }
 
       prevPosition.copy(this.camera.position);
       prevQuaternion.copy(this.camera.quaternion);
