@@ -117,6 +117,8 @@ var Simulation = {
                          0, 0, -self.zoom, 0,
                          0, 0, 0, 1);
 
+      THREE.BloomPass.blurX = new THREE.Vector2( 1 / (512 * vx), 0.0 );
+      THREE.BloomPass.blurY = new THREE.Vector2( 0.0, 1 / (512 * vy) );
       updateResolution();
     };
 
@@ -260,7 +262,7 @@ var Simulation = {
     {
       if (this.uniforms[uniform].type == "t") textureCount++;
     }
-    
+
     this.uniforms.texAccretionDisk.value.wrapS = THREE.RepeatWrapping
 
     // Some entities to calculate with
@@ -309,7 +311,7 @@ var Simulation = {
     return function() {
       var delta = this.clock.getDelta(),
           wormholePosition = this.wormholePositionSize;
-          
+
       // TODO: figure out why delta can become so small
       if (delta < 0.001)
       {
