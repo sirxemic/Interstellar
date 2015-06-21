@@ -44,6 +44,7 @@
       padding: 5px;
       text-align: center;
       z-index: 10;
+      pointer-events: none;
     }
 
     .no-ui #info {
@@ -122,9 +123,9 @@
     .no-ui #loading { display: none; }
 
     #keyboard-controls { display: block; }
-    #tablet-controls { display: none; }
-    .tablet #keyboard-controls { display: none; }
-    .tablet #tablet-controls { display: block; }
+    #mobile-device-controls { display: none; }
+    .mobile-device #keyboard-controls { display: none; }
+    .mobile-device #mobile-device-controls { display: block; }
 
     canvas { display: block; }
   </style>
@@ -144,8 +145,8 @@
     <kbd>space</kbd> toggle drag controls<br>
     Scroll to increase/decrease your field of view.
   </div>
-  <div id="tablet-controls">
-    Point your device around you to look around. Touch the screen to move forwards.
+  <div id="mobile-device-controls">
+    Point your device around you to look around. Touch the screen to move forwards. Use two fingers to go faster.
   </div>
 </div>
 
@@ -279,7 +280,7 @@ vec4 saturnRingColor(vec3 pos)
     color.rgb *= 0.01;
   }
   color.rgb *= color.a;
-  
+
   return vec4(color.rgb, -color.a);
 }
 
@@ -432,7 +433,7 @@ vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
         }
         currentObject = -1;
         prevObject = ID_SATURN_RING;
-        
+
         // Ensure we don't overstep and go through Saturn
         rayDistance = min(rayDistance, 0.9 * (length(saturnRings.xyz) - saturn.w));
       }
@@ -517,20 +518,22 @@ void main() {
 
 <script src="js/three.min.js"></script>
 
-<script src="js/ConvolutionShader.js"></script>
-<script src="js/CopyShader.js"></script>
+<script src="js/postprocessing/ConvolutionShader.js"></script>
+<script src="js/postprocessing/CopyShader.js"></script>
+<script src="js/postprocessing/EffectComposer.js"></script>
+<script src="js/postprocessing/ShaderPass.js"></script>
+<script src="js/postprocessing/MaskPass.js"></script>
+<script src="js/postprocessing/RenderPass.js"></script>
+<script src="js/postprocessing/BloomPass.js"></script>
 
-<script src="js/EffectComposer.js"></script>
-<script src="js/ShaderPass.js"></script>
-<script src="js/MaskPass.js"></script>
-<script src="js/RenderPass.js"></script>
-<script src="js/BloomPass.js"></script>
+<script src="js/controls/DeviceOrientationControls.js"></script>
+<script src="js/controls/KeyboardControls.js"></script>
+<script src="js/controls/MobileDeviceControls.js"></script>
 
-<script src="js/FlyControls.js"></script>
-<script src="js/DeviceOrientationControls.js"></script>
-<script src="js/TabletControls.js"></script>
 <script src="js/Detector.js"></script>
 <script src="js/stats.min.js"></script>
+<script src="js/Player.js"></script>
+<script src="js/Simulation.js"></script>
 <script src="js/main.js"></script>
 
 </body>
