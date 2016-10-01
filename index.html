@@ -32,7 +32,7 @@
       color: orange
     }
 
-    #info, #resolution, #stats {
+    #info, #resolution, #version {
       -webkit-transition: -webkit-transform 0.2s ease;
       transition: transform 0.2s ease;
     }
@@ -89,13 +89,9 @@
       opacity: 0;
     }
 
-    .no-ui #stats {
-      -webkit-transform: translateX(-100%);
-      transform: translateX(-100%);
-    }
-
     h3 {
       margin: 0;
+      font-size: 1em;
     }
 
     a {
@@ -128,6 +124,19 @@
     .mobile-device #mobile-device-controls { display: block; }
 
     canvas { display: block; }
+
+    #version {
+      position: fixed;
+      font-size: 0.9em;
+      top: 5px;
+      right: 0;
+      padding-right: 5px;
+      z-index: 100;
+    }
+    .no-ui #version {
+      -webkit-transform: translateX(100%);
+      transform: translateX(100%);
+    }
   </style>
 </head>
 
@@ -142,7 +151,7 @@
     <kbd>up|down</kbd> pitch,
     <kbd>left|right</kbd> yaw
     <kbd>shift</kbd> speed up<br>
-    <kbd>space</kbd> toggle drag controls<br>
+    <kbd>space/esc</kbd> toggle mouse controls<br>
     Scroll to increase/decrease your field of view.
   </div>
   <div id="mobile-device-controls">
@@ -151,10 +160,14 @@
 </div>
 
 <div id="resolution">
-  <h3>Pixel size</h3>
-  <label><input type="radio" name="resolution" value="4" checked> 4x4</label>
-  <label><input type="radio" name="resolution" value="2"> 2x2</label>
-  <label><input type="radio" name="resolution" value="1"> 1x1</label>
+  <h3>Resolution</h3>
+  <label><input type="radio" name="resolution" value="4" checked> low</label>
+  <label><input type="radio" name="resolution" value="2"> medium</label>
+  <label><input type="radio" name="resolution" value="1"> high</label>
+</div>
+
+<div id="version">
+  <a target="_blank" href="https://github.com/sirxemic/Interstellar">version 1.5</a>
 </div>
 
 <div class="ui-toggle">
