@@ -53,12 +53,6 @@ var Simulation = {
     this.container = document.getElementById("container");
     this.container.appendChild(this.renderer.domElement);
 
-    this.stats = new Stats();
-    this.stats.domElement.style.position = "absolute";
-    this.stats.domElement.style.top = 0;
-    this.stats.domElement.style.zIndex = 100;
-    document.body.appendChild(this.stats.domElement);
-
     var uiToggle = document.querySelector(".ui-toggle input");
 
     var onUIToggle = function() {
@@ -286,8 +280,6 @@ var Simulation = {
       this.update();
     }
     this.render();
-
-    this.stats.update();
   },
 
   start: function()
