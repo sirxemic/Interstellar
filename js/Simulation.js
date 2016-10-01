@@ -238,14 +238,20 @@ var Simulation = {
 
     // Pretty sure we don't need mobile device controls when a keyboard event is triggered.
     var keypress = function(event) {
+
       if (event.charCode == 32)
       {
-        if (!self.keyboardControls.dragToLook)
-        {
-          self.keyboardControls.moveState.yawLeft = 0;
-          self.keyboardControls.moveState.pitchDown = 0;
-        }
         self.keyboardControls.dragToLook = !self.keyboardControls.dragToLook;
+      }
+      else if (event.keyCode == 27)
+      {
+        self.keyboardControls.dragToLook = true;
+      }
+
+      if (self.keyboardControls.dragToLook)
+      {
+        self.keyboardControls.moveState.yawLeft = 0;
+        self.keyboardControls.moveState.pitchDown = 0;
       }
 
       self.mobileDeviceControls.disconnect();
