@@ -8,6 +8,13 @@ function MobileDeviceControls(player, element)
 
   var self = this;
 
+  function teleport(event)
+  {
+    event.preventDefault();
+
+    player.teleport();
+  }
+
   function onTouchEvent(event)
   {
     event.preventDefault();
@@ -48,6 +55,12 @@ function MobileDeviceControls(player, element)
     element.addEventListener( 'touchmove', onTouchEvent, false );
     element.addEventListener( 'touchend', onTouchEvent, false );
 
+    document.querySelector( '#teleport' ).addEventListener(
+      'touchstart',
+      teleport,
+      false
+    );
+
     this.enabled = true;
   };
 
@@ -58,6 +71,12 @@ function MobileDeviceControls(player, element)
     element.removeEventListener( 'touchmove', onTouchEvent, false );
     element.removeEventListener( 'touchend', onTouchEvent, false );
 
+    document.querySelector( '#teleport' ).removeEventListener(
+      'touchstart',
+      teleport,
+      false
+    );
+
     this.enabled = false;
   };
 
@@ -67,6 +86,4 @@ function MobileDeviceControls(player, element)
     this.player.velocity.copy(this.velocity).applyQuaternion(this.player.eyes.getWorldQuaternion());
     this.deviceOrientationControls.update();
   };
-
-  this.connect();
 }
