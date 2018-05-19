@@ -11,13 +11,23 @@ function Player()
   this.galaxy = 0;
 
   this.controls = [];
+
+  this.teleportTargets = [];
 }
 
 Player.prototype = {
 
+  addTeleportTarget: function(target) {
+    this.teleportTargets.push(target)
+  },
+
   lookAt: function(position)
   {
-    this.eyes.lookAt(position);
+    // this.object.lookAt makes it look in the exact opposite direction, for some reason
+    var lookAtMatrix = new THREE.Matrix4();
+    lookAtMatrix.lookAt(this.object.position, position, this.object.up);
+    this.object.quaternion.setFromRotationMatrix(lookAtMatrix);
+    this.object.quaternion.multiply(this.eyes.quaternion.clone().inverse());
   },
 
   handleInput: function()
@@ -107,5 +117,37 @@ Player.prototype = {
 
     // Object isn't actually part of a rendered scene, so we need to call this manually
     this.object.updateMatrixWorld(true);
+  },
+
+  getClosestTeleportIndex: function() {
+    var minDistance = Infinity;
+    var result = null;
+    for (var i = 0; i < this.teleportTargets.length; i++) {
+      var distance;
+
+      if (this.teleportTargets[i].galaxy != this.galaxy) {
+        distance =
+          this.object.position.distanceTo(Simulation.wormholePositionSize) +
+          this.teleportTargets[i].position.distanceTo(Simulation.wormholePositionSize);
+      } else {
+        distance = this.object.position.distanceTo(this.teleportTargets[i].position);
+      }
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        result = i;
+      }
+    }
+    return result;
+  },
+
+  teleport: function() {
+    var nextIndex = (this.getClosestTeleportIndex() + 1) % this.teleportTargets.length;
+    var teleportTarget = this.teleportTargets[nextIndex];
+
+    this.object.position.copy(teleportTarget.position);
+    this.lookAt(teleportTarget.lookAt);
+    this.galaxy = teleportTarget.galaxy;
   }
+
 };

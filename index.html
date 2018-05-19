@@ -45,6 +45,9 @@
       padding: 5px;
       text-align: center;
       z-index: 10;
+    }
+
+    .no-pointer-events {
       pointer-events: none;
     }
 
@@ -99,7 +102,7 @@
       color: #0080ff;
     }
 
-    kbd { color: orange }
+    kbd, #teleport { color: orange }
 
     #container {
       position: fixed;
@@ -144,8 +147,8 @@
 <body>
 
 <div id="info">
-  <h3>Controls:</h3>
-  <div id="keyboard-controls">
+  <h3 class="no-pointer-events">Controls:</h3>
+  <div id="keyboard-controls" class="no-pointer-events">
     <kbd>WASD</kbd> move,
     <kbd>R|F</kbd> up | down,
     <kbd>Q|E</kbd> roll,
@@ -153,10 +156,12 @@
     <kbd>left|right</kbd> yaw
     <kbd>shift</kbd> speed up<br>
     <kbd>space/esc</kbd> toggle mouse controls<br>
+    <kbd>T</kbd> Teleport to next object<br>
     Scroll to increase/decrease your field of view.
   </div>
   <div id="mobile-device-controls">
-    Point your device around you to look around. Touch the screen to move forwards. Use two fingers to go faster.
+    <div class="no-pointer-events">Point your device around you to look around. Touch the screen to move forwards. Use two fingers to go faster.</div>
+    <div id="teleport">Teleport to next object</div>
   </div>
 </div>
 

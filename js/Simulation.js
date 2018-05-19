@@ -127,6 +127,13 @@ var Simulation = {
     this.planetPositionSize.y += this.blackholePositionSize.y;
     this.planetPositionSize.z += this.blackholePositionSize.z;
 
+    this.teleportTargets = [
+      { position: new THREE.Vector3(10, -307, 454), lookAt: this.blackholePositionSize, galaxy: 1 },
+      { position: new THREE.Vector3(7.2, -188, 199.6), lookAt: this.planetPositionSize, galaxy: 1 },
+      { position: new THREE.Vector3(12.4, 3.3, -35.1), lookAt: this.wormholePositionSize, galaxy: 1 },
+      { position: new THREE.Vector3(9.8, -4.6, -3.1), lookAt: this.wormholePositionSize, galaxy: 0 }
+    ];
+
     // Ring definition - xyz is normal going through ring. Its magnitude determines inner radius.
     // w component determines outer radius
     this.blackholeDisk = new THREE.Vector4(-12, 12, 6, 150.0);
@@ -221,12 +228,17 @@ var Simulation = {
     this.player = new Player;
     this.player.lookAt(this.wormholePositionSize);
 
+    for (var i = 0; i < this.teleportTargets.length; i++) {
+      this.player.addTeleportTarget(this.teleportTargets[i]);
+    }
+
     // Add keyboard controls to the player
     this.keyboardControls = new KeyboardControls(this.player, this.container);
     this.keyboardControls.movementSpeed = 1;
     this.keyboardControls.rollSpeed = Math.PI / 3;
     this.keyboardControls.autoForward = false;
     this.keyboardControls.dragToLook = false;
+    this.keyboardControls.connect();
 
     this.player.controls.push(this.keyboardControls);
 
@@ -261,13 +273,15 @@ var Simulation = {
 
     window.addEventListener("keypress", keypress, false);
 
-    // Disable mobile device controls until we get some indication that we're on an orientable device
-    this.mobileDeviceControls.disconnect();
-
     var deviceListener = function(event) {
       if (event.alpha === null) return;
 
       self.mobileDeviceControls.connect();
+
+      // The player will probably not be looking with their device in the right direction, so fix that
+      requestAnimationFrame(function () {
+        self.player.object.quaternion.multiply(self.player.eyes.quaternion.clone().inverse())
+      })
 
       window.removeEventListener("deviceorientation", deviceListener, false);
 

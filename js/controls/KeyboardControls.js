@@ -1,6 +1,7 @@
 function KeyboardControls(player, element)
 {
   this.player = player;
+  this.teleport = this.player.teleport.bind(this.player);
 
   element.setAttribute('tabindex', -1);
 
@@ -95,6 +96,10 @@ function KeyboardControls(player, element)
 
       case 69: // E
         self.moveState.rollRight = 1;
+        break;
+
+      case 84: // T
+        self.teleport();
         break;
     }
 
@@ -316,6 +321,4 @@ function KeyboardControls(player, element)
     this.player.velocity.copy(this.moveVector).multiplyScalar(moveMult).applyQuaternion(this.player.eyes.getWorldQuaternion());
     this.player.eyeAngularVelocity.copy(this.rotationVector).multiplyScalar(rotMult);
   };
-
-  this.connect();
 }
