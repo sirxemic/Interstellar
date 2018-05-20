@@ -91,7 +91,13 @@ class Simulation {
       false
     )
 
-    this.renderer.setSize(window.innerWidth, window.innerHeight, Ui.getSelectedPixelSize())
+    let pixelSize = Ui.getSelectedPixelSize()
+    if (!pixelSize) {
+      pixelSize = this.getSuggestedPixelSize()
+      Ui.setPixelSize(pixelSize)
+    }
+
+    this.renderer.setSize(window.innerWidth, window.innerHeight, pixelSize)
 
     window.addEventListener('wheel', e => {
       e.preventDefault()
@@ -185,6 +191,20 @@ class Simulation {
 
   render () {
     this.renderer.render()
+  }
+
+  getSuggestedPixelSize () {
+    const pixelCount = window.innerWidth * window.innerHeight
+    let pixelSize = 4
+    while (pixelSize > 1) {
+      if (pixelCount / (pixelSize * pixelSize) < 512 * 512) {
+        pixelSize /= 2
+      }
+      else {
+        break
+      }
+    }
+    return pixelSize
   }
 
 }

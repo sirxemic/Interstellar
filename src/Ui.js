@@ -41,8 +41,18 @@ class UiController {
       }, false)
   }
 
+  setPixelSize (value) {
+    document.querySelector(`[name=resolution][value="${value}"]`).checked = true
+  }
+
   getSelectedPixelSize () {
-    return parseInt(document.querySelector('[name=resolution]:checked').value)
+    const element = document.querySelector('[name=resolution]:checked')
+
+    if (!element) {
+      return null
+    }
+
+    return parseInt(element.value)
   }
 
   showWebGLError () {

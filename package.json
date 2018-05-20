@@ -1,6 +1,6 @@
 {
   "name": "interstellar-demo",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Interstellar wormhole & blackhole simulator",
   "scripts": {
     "dev": "cross-env NODE_ENV=development webpack-dev-server --open --hot",
