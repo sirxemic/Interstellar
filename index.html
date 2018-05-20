@@ -3,7 +3,7 @@
 <head>
   <title>Interstellar - Interactive wormhole &amp; black hole</title>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <meta name="viewport" content="width=device-width">
   <meta name="description" content="Fly in your browser through a wormhole and black hole similar to those in the movie Interstellar.">
   <style>
     body {
@@ -13,20 +13,22 @@
       padding:0;
       margin:0;
       font-weight:bold;
-      overflow:hidden;
+      overflow: hidden;
+      height: 120vh;
 
       font-family: Monospace;
       font-size: 12px;
     }
 
     #webgl-error {
-      display: block;
+      display: none;
       text-align: center;
       position: fixed;
       left: 50%;
       top: 50%;
       -webkit-transform: translate(-50%, -50%);
       transform: translate(-50%, -50%);
+      z-index: 1;
     }
 
     #webgl-error a {
@@ -146,6 +148,11 @@
 
 <body>
 
+<div id="webgl-error">
+  Your graphics card does not seem to support <a href="http://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">WebGL</a><br>
+  Find out how to get it <a href="http://get.webgl.org/">here</a>
+</div>
+
 <div id="info">
   <h3 class="no-pointer-events">Controls:</h3>
   <div id="keyboard-controls" class="no-pointer-events">
@@ -167,13 +174,13 @@
 
 <div id="resolution">
   <h3>Resolution</h3>
-  <label><input type="radio" name="resolution" value="4" checked> low</label>
+  <label><input type="radio" name="resolution" value="4"> low</label>
   <label><input type="radio" name="resolution" value="2"> medium</label>
   <label><input type="radio" name="resolution" value="1"> high</label>
 </div>
 
 <div id="version">
-  <a target="_blank" href="https://github.com/sirxemic/Interstellar">version 1.6</a>
+  <a target="_blank" href="https://github.com/sirxemic/Interstellar">version 2.0.0</a>
 </div>
 
 <div class="ui-toggle">
@@ -183,376 +190,7 @@
 <div id="container"></div>
 <div id="loading">Loading...</div>
 
-<script type="x-shader/x-fragment" id="fragmentShader">
-#define ID_SATURN 0
-#define ID_SATURN_RING 1
-#define ID_GALAXY1 2
-#define ID_GALAXY2 3
-#define ID_BLACKHOLE 4
-#define ID_BLACKHOLE_DISK 5
-#define ID_PLANET 6
-
-varying vec4 rayDir;
-
-uniform vec3 lightDirection;
-
-uniform vec3 planetDiffuse;
-uniform vec3 planetSpecular;
-
-uniform vec4 wormhole;
-uniform float wormholeGravityRatio;
-uniform vec4 blackhole;
-
-uniform vec4 saturn;
-uniform vec4 planet;
-
-uniform vec4 blackholeDisk;
-uniform vec4 saturnRings;
-
-uniform sampler2D texSaturn;
-uniform sampler2D texSaturnRings;
-uniform sampler2D texGalaxy1;
-uniform sampler2D texGalaxy2;
-uniform sampler2D texAccretionDisk;
-
-uniform float worldSize;
-uniform int startGalaxy;
-
-const float lightSpeed = 0.2;
-
-const float INFINITY = 1000000.0;
-const float GALAXY_EDGE = 10000.0;
-
-const float EPSILON = 0.0001;
-const float r2 = 0.0625;
-
-const float PI = 3.14159265359;
-const float TWOPI = 6.28318530718;
-
-float gravityWormhole = wormhole.w * lightSpeed * lightSpeed;
-float gravityBlackhole = blackhole.w * lightSpeed * lightSpeed;
-
-vec3 saturnColor(vec3 pos)
-{
-  vec2 uv = vec2(
-    0.5 + atan(pos.z, pos.x) / TWOPI,
-    0.5 - asin(pos.y) / PI
-  );
-  return texture2D(texSaturn, uv).rgb;
-}
-
-vec3 panoramaColor(float n, vec3 pos)
-{
-  vec2 uv = vec2(
-    0.5 - atan(pos.z, pos.x) / TWOPI,
-    0.5 - asin(pos.y) / PI
-  );
-  if (n < 0.5) return texture2D(texGalaxy1, uv).rgb;
-  else return texture2D(texGalaxy2, uv).rgb;
-}
-
-vec3 accretionDiskColor(vec3 pos)
-{
-  pos = pos - blackhole.xyz;
-  float dist = length(pos);
-
-  float r1 = length(blackholeDisk.xyz);
-  float r2 = blackholeDisk.w;
-
-  // Important! Scale radii according to black hole
-  float v = clamp((dist - r1) / (r2 - r1), 0.0, 1.0);
-
-  vec3 base = cross(blackholeDisk.xyz, vec3(0.0, 0.0, 1.0));
-  float angle = acos(dot(normalize(base), normalize(pos)));
-  if (dot(cross(base, pos), blackholeDisk.xyz) < 0.0) angle = -angle;
-
-  float u = 0.5 - angle / TWOPI;
-  return texture2D(texAccretionDisk, vec2(u, v)).rgb;
-}
-
-float sphereDistance(vec3 rayPosition, vec3 rayDirection, vec4 sphere)
-{
-  vec3 v;
-  float p, d;
-  v = rayPosition - sphere.xyz;
-  p = dot(rayDirection, v);
-  d = p * p + sphere.w * sphere.w - dot(v, v);
-
-  return d < 0.0 ? -1.0 : -p - sqrt(d);
-}
-
-vec4 saturnRingColor(vec3 pos)
-{
-  pos = pos - saturn.xyz;
-
-  float r1 = length(saturnRings.xyz);
-  float r2 = saturnRings.w;
-
-  // Important! Scale radii according to saturn
-  float v = clamp((length(pos) - r1) / (r2 - r1), 0.0, 1.0);
-
-  vec4 color = texture2D(texSaturnRings, vec2(0.5, v));
-
-  float objectDistance = sphereDistance(saturn.xyz + pos, lightDirection, saturn);
-  if (objectDistance > 0.0)
-  {
-    color.rgb *= 0.01;
-  }
-  color.rgb *= color.a;
-
-  return vec4(color.rgb, -color.a);
-}
-
-float ringDistance(vec3 rayPosition, vec3 rayDirection, vec3 center, vec4 definition)
-{
-  float r1 = length(definition.xyz);
-  float r2 = definition.w;
-  vec3 normal = definition.xyz / r1;
-
-  float denominator = dot(rayDirection, normal);
-  float constant = -dot(center, normal);
-  float distanceToCenter;
-  if (abs(denominator) < EPSILON)
-  {
-    return -1.0;
-  }
-  else
-  {
-    float t = -(dot(rayPosition, normal) + constant) / denominator;
-    if (t < 0.0) return -1.0;
-
-    vec3 intersection = rayPosition + t * rayDirection;
-    distanceToCenter = length(intersection - center);
-    if (distanceToCenter >= r1 && distanceToCenter <= r2)
-    {
-      return t;
-    }
-    return -1.0;
-  }
-}
-
-vec3 computeShading(vec3 light, vec3 view, vec3 normal, vec3 diffuse, vec3 specular, vec3 ambient)
-{
-  float lambertian = max(dot(light, normal), 0.0);
-  vec3 reflectDir = reflect(-light, normal);
-  float specAngle = max(dot(reflectDir, view), 0.0);
-  float specularAmount = pow(specAngle, 4.0);
-  return ambient + lambertian * diffuse + specularAmount * specular;
-}
-
-void testDistance(int i, float distance, inout float currentDistance, inout int currentObject)
-{
-  if (distance >= EPSILON && distance < currentDistance)
-  {
-    currentDistance = distance;
-    currentObject = i;
-  }
-}
-
-vec3 raytrace(vec3 rayPosition, vec3 rayDirection)
-{
-  float currentDistance = INFINITY;
-  int   currentObject = -1, prevObject = -1;
-  float currentGalaxy = float(startGalaxy);
-  vec3  currentPosition;
-  vec3  normal;
-
-  float stepSize, rayDistance;
-  vec3 gravityVector, rayAccel;
-  float objectDistance;
-
-  vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
-
-  for (int i = 0; i < 100; i++)
-  {
-    currentDistance = INFINITY;
-
-    // Bend the light towards the wormhole
-    gravityVector = wormhole.xyz - rayPosition;
-    rayDistance = length(gravityVector);
-
-    // 0.86: rate of smaller steps when approaching wormhole
-    stepSize = rayDistance - wormhole.w * 0.86;
-
-    rayDistance -= wormhole.w * (1.0 - wormholeGravityRatio);
-
-    float amount = wormholeGravityRatio / rayDistance;
-    rayAccel = normalize(gravityVector) * gravityWormhole * amount * amount;
-
-    if (currentGalaxy > 0.5)
-    {
-      // Bend the light towards the black hole
-      gravityVector = blackhole.xyz - rayPosition;
-      rayDistance = length(gravityVector);
-
-      // 0.05: rate of smaller steps when approaching blackhole
-      stepSize = min(stepSize, rayDistance - blackhole.w * 0.05);
-
-      // rayAccel += normalize(gravityVector) * gravityBlackhole / (rayDistance * rayDistance)
-      rayAccel += gravityVector * gravityBlackhole / (rayDistance * rayDistance * rayDistance);
-    }
-
-    if (length(rayAccel) > lightSpeed)
-    {
-      rayAccel = normalize(rayAccel) * lightSpeed;
-    }
-
-    rayDirection = normalize(rayDirection * lightSpeed + rayAccel * stepSize);
-
-    if (stepSize <= 0.005)
-    {
-      currentObject = -1;
-      break;
-    }
-
-    if (currentGalaxy < 0.5)
-    {
-      objectDistance = sphereDistance(rayPosition, rayDirection, saturn);
-      testDistance(ID_SATURN, objectDistance, currentDistance, currentObject);
-
-      objectDistance = ringDistance(rayPosition, rayDirection, saturn.xyz, saturnRings);
-      testDistance(ID_SATURN_RING, objectDistance, currentDistance, currentObject);
-
-      testDistance(ID_GALAXY1, GALAXY_EDGE, currentDistance, currentObject);
-    }
-    else
-    {
-      objectDistance = sphereDistance(rayPosition, rayDirection, planet);
-      testDistance(ID_PLANET, objectDistance, currentDistance, currentObject);
-
-      // Test against a bit smaller sphere due to precision errors
-      objectDistance = sphereDistance(rayPosition, rayDirection, vec4(blackhole.xyz, blackhole.w * 0.93));
-      testDistance(ID_BLACKHOLE, objectDistance, currentDistance, currentObject);
-
-      objectDistance = ringDistance(rayPosition, rayDirection, blackhole.xyz, blackholeDisk);
-      testDistance(ID_BLACKHOLE_DISK, objectDistance, currentDistance, currentObject);
-
-      testDistance(ID_GALAXY2, GALAXY_EDGE, currentDistance, currentObject);
-    }
-
-    rayDistance = lightSpeed * stepSize;
-
-    // Check if we hit any object, and if so, stop integrating
-    if (currentObject != -1 && currentDistance <= rayDistance)
-    {
-      // But if it's something transparent, get its color, and continue
-      if (currentObject == ID_BLACKHOLE_DISK)
-      {
-        currentPosition = rayPosition + rayDirection * currentDistance;
-        color.rgb += accretionDiskColor(currentPosition).rgb * color.a;
-        currentObject = -1;
-        prevObject = ID_BLACKHOLE_DISK;
-      }
-      else if (currentObject == ID_SATURN_RING)
-      {
-        currentPosition = rayPosition + rayDirection * currentDistance;
-        if (prevObject != ID_SATURN_RING)
-        {
-          color += saturnRingColor(currentPosition);
-        }
-        currentObject = -1;
-        prevObject = ID_SATURN_RING;
-
-        // Ensure we don't overstep and go through Saturn
-        rayDistance = min(rayDistance, 0.9 * (length(saturnRings.xyz) - saturn.w));
-      }
-      else
-      {
-        break;
-      }
-    }
-
-    float d = sphereDistance(rayPosition, rayDirection, wormhole);
-    if (d > 0.0 && d < rayDistance)
-    { // Ray goes through wormhole
-      currentGalaxy = 1.0 - currentGalaxy;
-      vec3 intersection = rayPosition + rayDirection * d;
-      gravityVector = normalize(intersection - wormhole.xyz);
-
-      rayPosition = 2.0 * wormhole.xyz - intersection;
-      rayDirection = -reflect(rayDirection, gravityVector);
-
-      rayPosition += rayDirection * d;
-    }
-    else
-    {
-      rayPosition += rayDirection * rayDistance;
-    }
-  }
-
-  currentPosition = rayPosition + rayDirection * currentDistance;
-
-  if (currentObject == ID_GALAXY1 || currentObject == ID_GALAXY2)
-  {
-    color.rgb += panoramaColor(currentGalaxy, rayDirection) * color.a;
-  }
-  else if (currentObject == ID_SATURN)
-  {
-    normal = (currentPosition - saturn.xyz) / saturn.w;
-
-    vec3 diffuse = saturnColor(normal);
-    vec3 specular = vec3(0.0);
-    vec3 ambient = diffuse * 0.02;
-
-    float objectDistance = ringDistance(currentPosition, lightDirection, saturn.xyz, saturnRings);
-    if (objectDistance > 0.0)
-    {
-      diffuse *= 1.0 + saturnRingColor(currentPosition + lightDirection * objectDistance).a;
-    }
-
-    color.rgb += computeShading(lightDirection, -rayDirection, normal, diffuse, specular, ambient) * color.a;
-  }
-  else if (currentObject == ID_PLANET)
-  {
-    normal = (currentPosition - planet.xyz) / planet.w;
-
-    // light direction for black hole-orbiting planet is towards the blackhole
-    vec3 lightDirection2 = normalize(blackhole.xyz - planet.xyz);
-
-    vec3 diffuse = planetDiffuse;
-    vec3 specular = planetSpecular;
-    vec3 ambient = vec3(0.0);
-    color.rgb += computeShading(lightDirection2, -rayDirection, normal, diffuse, specular, ambient) * color.a;
-  }
-
-  return color.rgb;
-}
-
-void main()
-{
-  gl_FragColor = vec4(raytrace(cameraPosition, normalize(rayDir.xyz)), 1.0);
-}
-</script>
-<script type="x-shader/x-vertex" id="vertexShader">
-uniform mat4 rayMatrix;
-
-varying vec4 rayDir;
-
-void main() {
-  rayDir = rayMatrix * vec4(position.xy, 1.0, 0.0);
-
-  gl_Position = vec4(position.xy, 0.0, 1.0);
-}
-</script>
-
-<script src="js/three.min.js"></script>
-
-<script src="js/postprocessing/ConvolutionShader.js"></script>
-<script src="js/postprocessing/CopyShader.js"></script>
-<script src="js/postprocessing/EffectComposer.js"></script>
-<script src="js/postprocessing/ShaderPass.js"></script>
-<script src="js/postprocessing/MaskPass.js"></script>
-<script src="js/postprocessing/RenderPass.js"></script>
-<script src="js/postprocessing/BloomPass.js"></script>
-
-<script src="js/controls/DeviceOrientationControls.js"></script>
-<script src="js/controls/KeyboardControls.js"></script>
-<script src="js/controls/MobileDeviceControls.js"></script>
-
-<script src="js/Detector.js"></script>
-<script src="js/Player.js"></script>
-<script src="js/Simulation.js"></script>
-<script src="js/main.js"></script>
+<script src="dist/build.js"></script>
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
