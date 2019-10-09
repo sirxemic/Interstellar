@@ -1,0 +1,6 @@
+const { version } = require('./package.json')
+const fs = require('fs')
+const path = require('path')
+const indexPath = path.join(__dirname, 'index.html')
+const indexHtml = fs.readFileSync(indexPath, { encoding: 'utf-8' })
+fs.writeFileSync(indexPath, indexHtml.replace(/version \d+\.\d+\.\d+/, `version ${version}`))
