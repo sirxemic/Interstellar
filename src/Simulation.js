@@ -140,6 +140,8 @@ class Simulation {
       })
     }
 
+    this.controlsManager.start()
+
     this.player.addController(this.keyboardControls)
     this.player.addController(this.mobileDeviceControls)
   }
