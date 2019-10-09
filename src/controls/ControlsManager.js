@@ -8,13 +8,27 @@ export default class ControlsManager {
 
     this.onKeyPress = this.onKeyPress.bind(this)
     this.onDeviceOrientation = this.onDeviceOrientation.bind(this)
+  }
 
-    this.setDesktop()
+  start () {
+    window.addEventListener('deviceorientation', this.onDeviceOrientation, false)
+
+    if (window.DeviceOrientationEvent && window.DeviceOrientationEvent.requestPermission) {
+      this.setMobile()
+
+      document.body.classList.add('no-motion-controls')
+      document.querySelector('#permit-motion-controls').addEventListener(
+        'click',
+        () => window.DeviceOrientationEvent.requestPermission(),
+        false
+      )
+    }
+    else {
+      this.setDesktop()
+    }
   }
 
   setDesktop () {
-    window.addEventListener('deviceorientation', this.onDeviceOrientation, false)
-
     this.keyboardControls.enable()
     this.mobileDeviceControls.disable()
 
@@ -27,7 +41,6 @@ export default class ControlsManager {
     this.controls = 'mobile'
 
     window.addEventListener('keypress', this.onKeyPress, false)
-    window.removeEventListener('deviceorientation', this.onDeviceOrientation, false)
 
     this.keyboardControls.disable()
     this.mobileDeviceControls.enable()
@@ -47,6 +60,9 @@ export default class ControlsManager {
     }
 
     this.setMobile()
+
+    document.body.classList.remove('no-motion-controls')
+    window.removeEventListener('deviceorientation', this.onDeviceOrientation, false)
   }
 
 }

@@ -48,9 +48,7 @@ export default class EffectComposer {
 
   render () {
     for (let i = 0; i < this.passes.length; i++) {
-      let pass = this.passes[i]
-
-      pass.render(this.renderer, this.writeBuffer, this.readBuffer)
+      this.passes[i].render(this.renderer, this.writeBuffer, this.readBuffer)
     }
   }
 

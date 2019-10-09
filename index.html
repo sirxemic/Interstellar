@@ -124,10 +124,28 @@
     }
     .no-ui #loading { display: none; }
 
+    button {
+      color: orange;
+      font: inherit;
+      text-shadow: inherit;
+      border: 1px solid;
+      background: rgba(0,0,0,0.5);
+      line-height: 1.5;
+    }
+
     #keyboard-controls { display: block; }
     #mobile-device-controls { display: none; }
     .mobile-device #keyboard-controls { display: none; }
     .mobile-device #mobile-device-controls { display: block; }
+    #permit-motion-controls {
+      display: none;
+    }
+    .no-motion-controls #permit-motion-controls {
+      display: inline-block;
+    }
+    .no-motion-controls .motion-description {
+      display: none;
+    }
 
     canvas { display: block; }
 
@@ -167,8 +185,12 @@
     Scroll to increase/decrease your field of view.
   </div>
   <div id="mobile-device-controls">
-    <div class="no-pointer-events">Point your device around you to look around. Touch the screen to move forwards. Use two fingers to go faster.</div>
-    <div id="teleport">Teleport to next object</div>
+    <div class="no-pointer-events">
+      <span class="motion-description">Point your device around you to look around.</span>
+      Touch the screen to move forwards. Use two fingers to go faster.
+    </div>
+    <button id="permit-motion-controls">Click here to enable looking around</button>
+    <button id="teleport">Teleport to next object</button>
   </div>
 </div>
 
@@ -180,7 +202,7 @@
 </div>
 
 <div id="version">
-  <a target="_blank" href="https://github.com/sirxemic/Interstellar">version 2.0.0</a>
+  <a target="_blank" href="https://github.com/sirxemic/Interstellar">version 2.0.1</a>
 </div>
 
 <div class="ui-toggle">

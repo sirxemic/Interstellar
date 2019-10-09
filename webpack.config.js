@@ -1,5 +1,4 @@
 const path = require('path')
-const webpack = require('webpack')
 
 module.exports = {
   entry: './src/main.js',
@@ -14,12 +13,12 @@ module.exports = {
     rules: [
       {
         test: /\.js$/,
-        loader: 'eslint-loader',
+        use: 'eslint-loader',
         enforce: 'pre'
       },
       {
         test: /\.js$/,
-        loader: 'babel-loader',
+        use: 'babel-loader',
         exclude: /node_modules/
       },
       {
@@ -29,9 +28,5 @@ module.exports = {
     ]
   },
 
-  devtool: '#source-map',
-
-  optimization: {
-    minimize: true
-  }
+  devtool: 'source-map'
 }
